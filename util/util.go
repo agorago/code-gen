@@ -13,13 +13,37 @@ import (
 
 // Servicedetail - the full structure of the interface definition extracted from the AST
 type Servicedetail struct {
-	InterfaceFile  string
-	Name           string
-	CamelCase      string
-	CamelCaseLower string
-	URL            string
-	BaseErrorCode  int
-	Operations     []Operationdetail
+	InterfaceFile  string            // the path to the .go file that will be parsed for interfaces
+	Name           string            // the Base Name of the file (without .go suffix)
+	CamelCase      string            // the base name of the file in Camel Case
+	CamelCaseLower string            // the base name in camel case with the first letter in lower case
+	URL            string            // the URL for the repo as passed in the argument
+	BaseErrorCode  string            // the starting error code or 100,000 if not specified
+	Operations     []Operationdetail // Details of the operations
+}
+
+// Operationdetail - the details of the operation
+type Operationdetail struct {
+	Operation      string // the name of the Operation
+	Params         []Fielddetail
+	Results        []Fielddetail
+	RequestPayload string // the type of the request payload - short cut rather than parsing
+	// through all the Params above
+	ResponsePayload string // the type of the response payload - short cut rather than parsing
+	// through all the Results above
+	RequestPayloadLower  string // the request payload with the first letter in lower case
+	ResponsePayloadLower string // the response payload with the first letter in lower case
+	URL                  string // the operation name with eiphens
+	Method               string // the type of method. GET if no request param type is known
+	// POST otherwise
+}
+
+// Fielddetail - the details of either the params or the return values
+type Fielddetail struct {
+	Name   string // the name of the argument (for params) or "" for return values
+	Type   string // the type (either the primitive type or the struct)
+	Kind   string // the kind (the precise type as defined in reflect package)
+	Origin string // the origin as expected by the ParamOrigin of Param descriptor in B Plus
 }
 
 // ParseService - read the interface file passed from command line and extract the
@@ -33,8 +57,12 @@ func ParseService() Servicedetail {
 	sdet.URL = os.Args[2]
 	sdet.CamelCase = strcase.ToCamel(sdet.Name)
 	sdet.CamelCaseLower = strcase.ToLowerCamel(sdet.Name)
-	sdet.BaseErrorCode = 100000
-	parseInterface(iFile, &sdet)
+	s := "100000"
+	if len(os.Args) > 4 {
+		s = os.Args[4]
+	}
+	sdet.BaseErrorCode = s
+	parseFile(iFile, &sdet)
 
 	return sdet
 }
@@ -47,7 +75,7 @@ func trimInterfaceName(s string) string {
 	return strings.TrimSuffix(s, ".go")
 }
 
-func parseInterface(iFile string, sdet *Servicedetail) {
+func parseFile(iFile string, sdet *Servicedetail) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, iFile, nil, parser.ParseComments)
 	if err != nil {
@@ -94,30 +122,9 @@ func getOpData(sdet *Servicedetail, op string, ft *ast.FuncType) Operationdetail
 		ResponsePayload:      responsePayloadType,
 		RequestPayloadLower:  strcase.ToLowerCamel(requestPayloadType),
 		ResponsePayloadLower: strcase.ToLowerCamel(responsePayloadType),
-		URL: strcase.ToDelimited(op,'-'),
-		Method: method,
+		URL:                  strcase.ToDelimited(op, '-'),
+		Method:               method,
 	}
-}
-
-// Operationdetail - the details of the operation
-type Operationdetail struct {
-	Operation            string
-	Params               []Fielddetail
-	Results              []Fielddetail
-	RequestPayload       string
-	ResponsePayload      string
-	RequestPayloadLower  string
-	ResponsePayloadLower string
-	URL string
-	Method string
-}
-
-// Fielddetail - the details of either the params or the return values
-type Fielddetail struct {
-	Name string
-	Type string
-	Kind string
-	Origin string
 }
 
 // returns the details of all fields as well as the type for the
@@ -139,7 +146,7 @@ func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string) {
 		}
 		kind := getKindOf(op, name, varType)
 		origin := getOrigin(varType)
-		pd = append(pd, Fielddetail{name, varType, kind,origin})
+		pd = append(pd, Fielddetail{name, varType, kind, origin})
 		if origin == "bplus.PAYLOAD" {
 			payloadType = varType
 		}

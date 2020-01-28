@@ -11,9 +11,9 @@ import (
 
 
 
-func main() {
-	if len(os.Args) != 4 {
-		log.Fatalf("Usage: %s interface-file url template-file", os.Args[0])
+func main() { 
+	if len(os.Args) < 4 {
+		log.Fatalf("Usage: %s interface-file url template-file [start error code]", os.Args[0])
 		os.Exit(0)
 	}
 	templateFile := os.Args[3]

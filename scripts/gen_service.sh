@@ -3,7 +3,7 @@ function createFromTemplate(){
 	dest_file=$1
 	template_file=$template_folder/$dest_file
 	full_path_dest_file=$mod/$dest_file
-	$scripts_folder/gen-file-from-template "$interface_file"  "$url" $template_file > $full_path_dest_file
+	$scripts_folder/gen-file-from-template "$interface_file"  "$url" $template_file $start_error_code > $full_path_dest_file
 }
 
 prog=${0##*/}
@@ -13,12 +13,13 @@ then
 	exit 1
 fi
 scripts_folder=${0%/*}
-[[ $scripts_folder != "/*" ]] && scripts_folder=$(pwd)/${scripts_folder}
+[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
 
 base_folder=${scripts_folder%/bin}
 template_folder=$base_folder/template-files
 
 interface_file=${1}
+start_error_code=${3}
 if [[ ! -f $interface_file ]]
 then
 	echo "Interface file $interface_file cannot be opened"
