@@ -14,15 +14,63 @@ function generateService(){
     read -p "Start Error code($default_start_error_code):" errorcode 
     [[ -z $errorcode ]] && errorcode=$default_start_error_code
     echo "generating service $mod ($interface_file $URL $errorcode)"
-    $scripts_folder/gen_service.sh $interface_file $URL $errorcode
+    $scripts_folder/gen-service.sh $interface_file $URL $errorcode
 }
 
 function generateDeployable(){
-    echo "generating deployable"
+    error=1
+    while (( error > 0 ))
+    do
+        read -p "Module:" mod
+        if [[ ! -z $mod ]]
+        then
+            error=0
+        fi
+    done
+
+    if [[ $mod != *-deploy ]]
+    then
+        mod=$mod-deploy
+    fi
+    read -p "URL For the repo ($URLPrefix/$mod)": URL
+    [[ -z $URL ]] && URL=$URLPrefix/$mod
+    echo "generating service $mod with url $URL "
+    $scripts_folder/gen-deploy.sh $mod $URL 
 }
 
 function generateWorkflow(){
-    echo "generating workflow"
+    error=1
+    while (( error > 0 ))
+    do
+        read -p "Workflow File:" workflow_file
+        mod=$(validateWorkflow $workflow_file)
+        error=$?
+    done
+
+    read -p "URL For the repo ($URLPrefix/$mod)": URL
+    [[ -z $URL ]] && URL=$URLPrefix/$mod
+    read -p "Start Error code($default_start_error_code):" errorcode 
+    [[ -z $errorcode ]] && errorcode=$default_start_error_code
+    echo "generating service $mod ($workflow_file $URL $errorcode)"
+    $scripts_folder/gen-workflow.sh $workflow_file $URL $errorcode
+}
+
+function validateWorkflow(){
+    workflow_file=${1}
+    if [[ ! -f $workflow_file ]]
+    then
+	    echo "Workflow file $workflow_file cannot be opened"
+	    return 2
+    fi
+
+    mod=${workflow_file%.json}
+    if [[ $mod == *-std ]]
+    then
+        mod=${mod%-std}
+    fi
+        
+    mod=${mod##*/}
+    echo $mod
 }
 
 function getModule {
@@ -49,8 +97,13 @@ function choices(){
             index=$((index + 1))
         done
 
-        read -p 'Please enter your choice: ' p
+        read -p 'Please enter your choice: (or quit to exit the program) ' p
         
+        if [[ $p == quit ]]
+        then
+            _exit 0
+        fi
+
         if  (( p == 0 ||  p > $# ))
         then
             echo "Invalid choice: $p. Try again" >&2
@@ -61,15 +114,24 @@ function choices(){
     return 0
 }
 
+function setenv(){
+	curprog=${1}
+	scripts_folder=${curprog%/*}
+	[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
+
+	base_folder=${scripts_folder%/bin}
+	template_folder=$base_folder/template-files/gen-workflow
+	config_folder=$base_folder/config
+	source $config_folder/setenv.sh
+}
+
 prog=${0##*/}
 
 tmpfile1=/tmp/$prog.$$.$RANDOM
 tmpfile2=/tmp/$prog.$$.$RANDOM
 tmpfile3=/tmp/$prog.$$.$RANDOM
-URLPrefix="github.com/MenaEnergyVentures"
-default_start_error_code=100000
-scripts_folder=${0%/*}
-[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
+
+setenv $0
 
 usage="${prog} [-?] [-i | -d [-f filename] ] [-l] [-t trajectory] [-h hostname] [-p port] [-D db]"
 function usage {

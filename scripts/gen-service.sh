@@ -6,18 +6,24 @@ function createFromTemplate(){
 	$scripts_folder/gen-file-from-template "$interface_file"  "$url" $template_file $start_error_code > $full_path_dest_file
 }
 
+function setenv(){
+	curprog=${1}
+	scripts_folder=${curprog%/*}
+	[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
+
+	base_folder=${scripts_folder%/bin}
+	template_folder=$base_folder/template-files/gen-workflow
+	config_folder=$base_folder/config
+	source $config_folder/setenv.sh
+}
+
 prog=${0##*/}
 if [[ -z $1 ]] || [[ $1 != *.go ]] || [[ -z $2 ]]
 then
 	echo "Usage: $prog <go interface file> [URL-for-module]"
 	exit 1
 fi
-scripts_folder=${0%/*}
-[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
-
-base_folder=${scripts_folder%/bin}
-template_folder=$base_folder/template-files
-
+setenv $0
 interface_file=${1}
 start_error_code=${3}
 if [[ ! -f $interface_file ]]
