@@ -12,7 +12,7 @@ function setenv(){
 	[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
 
 	base_folder=${scripts_folder%/bin}
-	template_folder=$base_folder/template-files/gen-workflow
+	template_folder=$base_folder/template-files/gen-service
 	config_folder=$base_folder/config
 	source $config_folder/setenv.sh
 }
@@ -44,7 +44,9 @@ echo "Creating module $mod in folder $scripts_folder with url $url"
 cp -r $template_folder $mod
 cd $mod
 go mod init "$url"
-cd ..
+go mod edit --replace ${URLPrefix}/bplus=../bplus
+cd -
+cp $interface_file $mod/api/api.go
 find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
 	while read r
 	do

@@ -2,17 +2,16 @@ package test
 	
 	import (
 		"context"
-		"fmt"
 	
 		"github.com/DATA-DOG/godog"
 		_ "{{.URL}}" // init module
-		"{{.URL}}/api"
+		api "{{.URL}}/api"
 		"{{.URL}}/proxy"
 		e "{{.URL}}/internal/err"
 	)
 	type {{.CamelCase}} struct {
 		{{ range $index,$op := .Operations}}
-		{{$op.ResponsePayloadLower}}  api.{{$op.ResponsePayload}}
+		{{$op.ResponsePayloadLower}}  {{$op.ResponsePayload}}
 		{{end}}
 	}
 	var {{.CamelCaseLower}} = {{.CamelCase}}{}
@@ -27,12 +26,12 @@ package test
 	}
 
 	{{ range $index,$op := .Operations}}
-	func ({{$service.CamelCaseLower}} {{$service.CamelCase}})iInvoke{{$op.Operation}}With(){
+	func ({{$service.CamelCaseLower}} {{$service.CamelCase}})iInvoke{{$op.Operation}}With()error{
 		// Construct the request with the arguments passed
  
-		resp, err := {{$service.CamelCaseLower}}Proxy.{{$op.Operation}}(context.TODO() {{range $index,$val := .Params}}{{if $index}},{{$val.Name}}{{end}}{{end}})
+		resp, err := {{$service.CamelCaseLower}}Proxy.{{$op.Operation}}(context.TODO() {{range $index,$val := .Params}}{{if $index}},{{$val.DefaultValue}}{{end}}{{end}})
 		if err != nil {
-			return e.MakeBplusError(ctx, e.CannotInvokeService,"{{$service.CamelCase}}", "{{.Operation}}", err.Error())
+			return e.MakeBplusError(context.TODO(), e.CannotInvokeOperation,"{{$service.CamelCase}}", "{{.Operation}}", err.Error())
 		}
 		{{$service.CamelCaseLower}}.{{$op.ResponsePayloadLower}} = resp
 		return nil

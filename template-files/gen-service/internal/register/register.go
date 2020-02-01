@@ -1,7 +1,10 @@
 package register
 {{ with $service := .}}
 import (
-	bplus "github.com/MenaEnergyVentures/bplus"
+	"context"
+	api "{{$service.URL}}/api"
+	service "{{$service.URL}}/internal/service"
+	bplus "github.com/MenaEnergyVentures/bplus/fw"
 )
 func init(){
 	var sd =  bplus.ServiceDescriptor{
@@ -9,6 +12,7 @@ func init(){
 		Name:            "{{$service.Name}}",
 		Operations:      OperationDescriptors(),
 	}
+	bplus.RegisterService("{{$service.Name}}", sd)
 }
 
 func OperationDescriptors()([]bplus.OperationDescriptor){
@@ -43,14 +47,14 @@ func {{$elem.Operation}}PD()([]bplus.ParamDescriptor){
 
 {{range $index,$value := $service.Operations}}
 {{if $value.RequestPayload -}}
-func make{{$value.Operation}}Request()({{$value.RequestPayload}}){
-	return {{$value.RequestPayload}}{}
+func make{{$value.Operation}}Request(ctx context.Context)(interface{},error){
+	return {{$value.RequestPayload}}{},nil
 }
 {{- end}}
 
 {{if $value.ResponsePayload -}}
-func make{{$value.Operation}}Response()({{$value.ResponsePayload}}){
-	return {{$value.ResponsePayload}}{}
+func make{{$value.Operation}}Response(ctx context.Context)(interface{},error){
+	return {{$value.ResponsePayload}}{},nil
 }
 {{- end}}
 {{- end}}

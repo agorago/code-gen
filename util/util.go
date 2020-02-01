@@ -40,10 +40,11 @@ type Operationdetail struct {
 
 // Fielddetail - the details of either the params or the return values
 type Fielddetail struct {
-	Name   string // the name of the argument (for params) or "" for return values
-	Type   string // the type (either the primitive type or the struct)
-	Kind   string // the kind (the precise type as defined in reflect package)
-	Origin string // the origin as expected by the ParamOrigin of Param descriptor in B Plus
+	Name         string // the name of the argument (for params) or "" for return values
+	Type         string // the type (either the primitive type or the struct)
+	Kind         string // the kind (the precise type as defined in reflect package)
+	Origin       string // the origin as expected by the ParamOrigin of Param descriptor in B Plus
+	DefaultValue string // the default value of this param that can be passed to a function
 }
 
 // ParseService - read the interface file passed from command line and extract the
@@ -144,9 +145,11 @@ func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string) {
 		case *ast.SelectorExpr:
 			varType = v.Sel.Name
 		}
-		kind := getKindOf(op, name, varType)
+
 		origin := getOrigin(varType)
-		pd = append(pd, Fielddetail{name, varType, kind, origin})
+		varType = correctPayloadType(varType, origin)
+		kind, defaultValue := getKindOfDefaultValue(op, name, varType)
+		pd = append(pd, Fielddetail{name, varType, kind, origin, defaultValue})
 		if origin == "bplus.PAYLOAD" {
 			payloadType = varType
 		}
@@ -155,18 +158,35 @@ func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string) {
 	return pd, payloadType
 }
 
-func getKindOf(op string, paramname string, paramtype string) string {
+// correct the payload type to reflect the correct value.
+// the AST does not seem to give us the fully qualified type name
+func correctPayloadType(typ string, origin string) string {
+	switch origin {
+	case "bplus.CONTEXT":
+		return "context.Context"
+	case "bplus.PAYLOAD":
+		return "api." + typ
+	default:
+		return typ
+	}
+}
+
+func getKindOfDefaultValue(op string, paramname string, paramtype string) (string, string) {
 	switch paramtype {
 	case "int", "int8", "int16", "int32", "int64":
-		return "reflect.Int"
+		return "reflect.Int", "0"
 	case "string":
-		return "reflect.String"
+		return "reflect.String", `""`
 	case "float32":
-		return "reflect.Float32"
+		return "reflect.Float32", "0.0"
 	case "float64":
-		return "reflect.Float64"
+		return "reflect.Float64", "0.0"
+	case "Context":
+		return "", "context.TODO()"
+	case "error":
+		return "", "nil"
 	default:
-		return ""
+		return "", paramtype + "{}"
 	}
 }
 
