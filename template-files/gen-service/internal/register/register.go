@@ -48,13 +48,13 @@ func {{$elem.Operation}}PD()([]bplus.ParamDescriptor){
 {{range $index,$value := $service.Operations}}
 {{if $value.RequestPayload -}}
 func make{{$value.Operation}}Request(ctx context.Context)(interface{},error){
-	return {{$value.RequestPayload}}{},nil
+	return {{$value.RequestPayloadDefaultValue}},nil
 }
 {{- end}}
 
 {{if $value.ResponsePayload -}}
 func make{{$value.Operation}}Response(ctx context.Context)(interface{},error){
-	return {{$value.ResponsePayload}}{},nil
+	return {{$value.ResponsePayloadDefaultValue}},nil
 }
 {{- end}}
 {{- end}}

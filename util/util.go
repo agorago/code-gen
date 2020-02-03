@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -31,10 +32,12 @@ type Operationdetail struct {
 	// through all the Params above
 	ResponsePayload string // the type of the response payload - short cut rather than parsing
 	// through all the Results above
-	RequestPayloadLower  string // the request payload with the first letter in lower case
-	ResponsePayloadLower string // the response payload with the first letter in lower case
-	URL                  string // the operation name with eiphens
-	Method               string // the type of method. GET if no request param type is known
+	RequestPayloadLower         string // the request payload with the first letter in lower case
+	ResponsePayloadLower        string // the response payload with the first letter in lower case
+	RequestPayloadDefaultValue  string // short cut for default value of the request payload
+	ResponsePayloadDefaultValue string // short cut for default value of the response payload
+	URL                         string // the operation name with eiphens
+	Method                      string // the type of method. GET if no request param type is known
 	// POST otherwise
 }
 
@@ -45,6 +48,7 @@ type Fielddetail struct {
 	Kind         string // the kind (the precise type as defined in reflect package)
 	Origin       string // the origin as expected by the ParamOrigin of Param descriptor in B Plus
 	DefaultValue string // the default value of this param that can be passed to a function
+	PointerType  bool   // Is this a pointer or a normal struct
 }
 
 // ParseService - read the interface file passed from command line and extract the
@@ -88,51 +92,69 @@ func parseFile(iFile string, sdet *Servicedetail) {
 		// Find Interface definitions
 		inter, ok := n.(*ast.InterfaceType)
 		if ok {
-			visitInterface(sdet, inter)
+			err := visitInterface(sdet, inter)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error occurred while parsing the file. Error = %s\n", err.Error())
+				return false
+			}
 			return true
 		}
 		return true
 	})
 }
 
-func visitInterface(sdet *Servicedetail, t *ast.InterfaceType) {
+func visitInterface(sdet *Servicedetail, t *ast.InterfaceType) error {
 	m := t.Methods
 
 	for _, m1 := range m.List {
 		op := m1.Names[0]
 		ft, ok := m1.Type.(*ast.FuncType)
+		opdata, err := getOpData(sdet, op.Name, ft)
+		if err != nil {
+			return fmt.Errorf("Error with interface. Err = %s", err.Error())
+		}
 		if ok {
-			sdet.Operations = append(sdet.Operations, getOpData(sdet, op.Name, ft))
+			sdet.Operations = append(sdet.Operations, opdata)
 		}
 	}
+	return nil
 }
 
-func getOpData(sdet *Servicedetail, op string, ft *ast.FuncType) Operationdetail {
-	paramDetails, requestPayloadType := parseFields(op, ft.Params)
-	respDetails, responsePayloadType := parseFields(op, ft.Results)
+func getOpData(sdet *Servicedetail, op string, ft *ast.FuncType) (Operationdetail, error) {
+	paramDetails, requestPayloadType, requestPayloadDefaultValue := parseFields(op, ft.Params)
+	if len(paramDetails) == 0 || paramDetails[0].Name != "ctx" ||
+		paramDetails[0].Type != "context.Context" {
+		return Operationdetail{}, fmt.Errorf("First parameter of function %s must be ctx context.Context", op)
+	}
+
+	respDetails, responsePayloadType, responsePayloadDefaultValue := parseFields(op, ft.Results)
 	method := "POST"
 	if requestPayloadType == "" {
 		method = "GET"
 	}
 
 	return Operationdetail{
-		Operation:            op,
-		Params:               paramDetails,
-		Results:              respDetails,
-		RequestPayload:       requestPayloadType,
-		ResponsePayload:      responsePayloadType,
-		RequestPayloadLower:  strcase.ToLowerCamel(requestPayloadType),
-		ResponsePayloadLower: strcase.ToLowerCamel(responsePayloadType),
-		URL:                  strcase.ToDelimited(op, '-'),
-		Method:               method,
-	}
+		Operation:                   op,
+		Params:                      paramDetails,
+		Results:                     respDetails,
+		RequestPayload:              requestPayloadType,
+		ResponsePayload:             responsePayloadType,
+		RequestPayloadLower:         strcase.ToLowerCamel(requestPayloadType),
+		ResponsePayloadLower:        strcase.ToLowerCamel(responsePayloadType),
+		RequestPayloadDefaultValue:  requestPayloadDefaultValue,
+		ResponsePayloadDefaultValue: responsePayloadDefaultValue,
+		URL:                         strcase.ToDelimited(op, '-'),
+		Method:                      method,
+	}, nil
 }
 
 // returns the details of all fields as well as the type for the
 // field that is of kind payload
-func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string) {
+func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string, string) {
 	var pd []Fielddetail
 	var payloadType = ""
+	var payloadDefaultValue = ""
+	var pointerType = false
 	for _, m1 := range fl.List {
 		var name = ""
 		if len(m1.Names) == 1 {
@@ -142,36 +164,49 @@ func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string) {
 		switch v := m1.Type.(type) {
 		case *ast.Ident:
 			varType = v.Name
+			//fmt.Fprintf(os.Stderr,"Ident:%#v\n", v)
 		case *ast.SelectorExpr:
 			varType = v.Sel.Name
+			//fmt.Fprintf(os.Stderr,"Sel:%#v X: %#v\n", v.Sel, v.X)
+		case *ast.StarExpr:
+			v1 := v.X.(*ast.Ident)
+			varType = v1.Name
+			pointerType = true
+			// fmt.Fprintf(os.Stderr,"StarExpr:%#v \n", v.X)
+		default:
+			fmt.Fprintf(os.Stderr, "Unknown Param or return type - talk to the team that maintains this program :%#v \n", v)
 		}
 
 		origin := getOrigin(varType)
-		varType = correctPayloadType(varType, origin)
-		kind, defaultValue := getKindOfDefaultValue(op, name, varType)
-		pd = append(pd, Fielddetail{name, varType, kind, origin, defaultValue})
+		varType = correctPayloadType(varType, origin, pointerType)
+		kind, defaultValue := getKindOfDefaultValue(op, name, varType, pointerType)
+		pd = append(pd, Fielddetail{name, varType, kind, origin, defaultValue, pointerType})
 		if origin == "bplus.PAYLOAD" {
 			payloadType = varType
+			payloadDefaultValue = defaultValue
 		}
 	}
 
-	return pd, payloadType
+	return pd, payloadType, payloadDefaultValue
 }
 
 // correct the payload type to reflect the correct value.
 // the AST does not seem to give us the fully qualified type name
-func correctPayloadType(typ string, origin string) string {
+func correctPayloadType(typ string, origin string, pointerType bool) string {
 	switch origin {
 	case "bplus.CONTEXT":
 		return "context.Context"
 	case "bplus.PAYLOAD":
+		if pointerType {
+			return "*api." + typ
+		}
 		return "api." + typ
 	default:
 		return typ
 	}
 }
 
-func getKindOfDefaultValue(op string, paramname string, paramtype string) (string, string) {
+func getKindOfDefaultValue(op string, paramname string, paramtype string, pointerType bool) (string, string) {
 	switch paramtype {
 	case "int", "int8", "int16", "int32", "int64":
 		return "reflect.Int", "0"
@@ -186,7 +221,12 @@ func getKindOfDefaultValue(op string, paramname string, paramtype string) (strin
 	case "error":
 		return "", "nil"
 	default:
+		if pointerType {
+			return "", "&" + paramtype[1:] + "{}"
+		}
+
 		return "", paramtype + "{}"
+
 	}
 }
 
