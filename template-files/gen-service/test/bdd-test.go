@@ -31,7 +31,11 @@ package test
  
 		resp, err := {{$service.CamelCaseLower}}Proxy.{{$op.Operation}}(context.TODO() {{range $index,$val := .Params}}{{if $index}},{{$val.DefaultValue}}{{end}}{{end}})
 		if err != nil {
-			return e.MakeBplusError(context.TODO(), e.CannotInvokeOperation,"{{$service.CamelCase}}", "{{.Operation}}", err.Error())
+			return e.MakeBplusError(context.TODO(), e.CannotInvokeOperation,map[string]in terface{}{
+				"Service": "{{$service.CamelCase}}", 
+				"Operation":"{{.Operation}}", 
+				"Error":err.Error(),}
+			)
 		}
 		{{$service.CamelCaseLower}}.{{$op.ResponsePayloadLower}} = resp
 		return nil

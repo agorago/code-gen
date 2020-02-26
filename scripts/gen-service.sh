@@ -6,6 +6,30 @@ function createFromTemplate(){
 	$scripts_folder/gen-file-from-template "$interface_file"  "$url" $template_file $start_error_code > $full_path_dest_file
 }
 
+function substituteService(){
+	dest_file=$1
+	template_file=$template_folder/$dest_file
+	full_path_dest_file=$mod/$dest_file
+	service=$(constructComponentNameFromFilename $interface_file)
+	sed "s/__SERVICE__/$service/"  $template_file > $full_path_dest_file
+}
+
+function constructComponentNameFromPackageName() {
+  a=${1%.go}
+  a=${a##*/}
+  component=""
+
+  echo $a | tr '-' '\n' |
+  {
+    while  read A
+    do
+      A="$(tr '[:lower:]' '[:upper:]' <<< ${A:0:1})${A:1}"
+      component="$component$A"
+    done
+    echo $component
+  }
+}
+
 function setenv(){
 	curprog=${1}
 	scripts_folder=${curprog%/*}
@@ -52,5 +76,10 @@ find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
 	do
 		createFromTemplate $r
 	done
-	
+
+find $template_folder -name "*.toml" -print | sed "s#^$template_folder/##" |
+	while read r
+	do
+		substituteService $r  # substitute the __SERVICE__ with the service name
+	done	
 exit 0

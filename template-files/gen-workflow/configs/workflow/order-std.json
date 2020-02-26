@@ -1,0 +1,78 @@
+{
+    "created":{
+        "initial": true,
+        "events":{
+            "assignPilot":{
+                "newState": "assigned"
+            },
+            "cancelOrder":{
+                "newState": "cancelled"
+            }
+        }
+    },
+    "assigned":{
+        "events":{
+            "startFulfillment":{
+                "newState": "started"
+            },
+            "cancelAssignedOrder":{
+                "newState": "cancelled"
+            }
+        }
+    },
+    "started":{
+        "events":{
+            "startFueling":{
+                "newState": "fueling"
+            },
+            "cancelStartedOrder":{
+                "newState": "cancelled"
+            }
+        }
+    },
+    "fueling":{
+        "events":{
+            "completeFueling":{
+                "newState": "pending-payment"
+            }
+        }
+    },
+    "pending-payment":{
+        "events":{
+            "receivePayment":{
+                "newState": "is-payment-complete"
+            }
+        }
+    },
+    "is-payment-complete":{
+        "automatic": true,
+        "events":{
+            "yes":{
+                "newState": "completed"
+            },
+            "no":{
+                "newState": "partially-paid"
+            }
+        }   
+    },
+    "partially-paid":{
+        "events":{
+            "receivePayment":{
+                "newState": "is-payment-complete"
+            }
+        }
+    },
+    "completed":{
+        "events": {
+            "closeOrder":{
+                "newState": "closed"
+            }
+        }
+    },
+    "closed":{
+
+    },
+    "cancelled":{
+
+    }
+}
