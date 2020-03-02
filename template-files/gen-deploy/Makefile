@@ -23,7 +23,7 @@ docker-run:
 
 ## prepare-dependencies: Prepares the dependencies from dependencies.txt
 .PHONY: prepare-dependencies
-prepare-dependencies: generate-error-codes generate-dependencies-go copy-bundles
+prepare-dependencies: generate-error-codes generate-dependencies-go copy-bundles generate-main-test-go  copy-tests
 
 ## copy-tests: Copies the feature test files from all dependencies
 .PHONY: copy-tests
