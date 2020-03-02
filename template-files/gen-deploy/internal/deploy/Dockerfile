@@ -18,7 +18,7 @@ FROM alpine
 ENV CONFIGPATH=/configs
 # Copy statically linked binary
 # Copy statically linked binary
-COPY --from=builder /tmp/target/sample-deploy/bin/main /main
+COPY --from=builder /tmp/target/__SERVICE_DIR__/bin/main /main
 COPY --from=builder /tmp/target/configs /configs
 # Copy SSL certificates, eventhough we don't need it for this example
 # but if you decide to talk to HTTPS sites, you'll need this.
