@@ -5,9 +5,10 @@ FROM golang:alpine as builder
 RUN mkdir -p /tmp/target
 WORKDIR  /tmp/target
 # Copy Makefile first, it will save time during development.
-COPY ./Makefile ./Makefile
+# COPY ./Makefile ./Makefile
 # Copy all project files
 ADD . .
+WORKDIR __SERVICE_DIR__
 # Generate a binary
 RUN go get -d -v
 RUN apk add make

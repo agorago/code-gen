@@ -9,7 +9,7 @@ include .env
 ## build: Build the executable
 .PHONY: build
 build:
-	go build -o bin/main cmd/main/main.go
+	go build -o bin/main internal/cmd/main/main.go
 
 ## docker-build: Builds a container  using docker 
 .PHONY: docker-build
