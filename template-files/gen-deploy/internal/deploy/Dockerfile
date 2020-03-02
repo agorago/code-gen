@@ -15,11 +15,14 @@ RUN apk add make
 RUN make build
 # Second (final) stage, base image is scratch
 FROM alpine
+ENV CONFIGPATH=/configs
 # Copy statically linked binary
-COPY --from=builder /tmp/target/${arg1} /executable
+# Copy statically linked binary
+COPY --from=builder /tmp/target/sample-deploy/bin/main /main
+COPY --from=builder /tmp/target/configs /configs
 # Copy SSL certificates, eventhough we don't need it for this example
 # but if you decide to talk to HTTPS sites, you'll need this.
 #COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Notice "CMD", we don't use "Entrypoint" because there is no OS
 EXPOSE 8080
-CMD ["/executable" ]
+CMD ["/main" ]
