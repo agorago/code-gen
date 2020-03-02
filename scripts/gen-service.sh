@@ -10,8 +10,14 @@ function substituteService(){
 	dest_file=$1
 	template_file=$template_folder/$dest_file
 	full_path_dest_file=$mod/$dest_file
-	service=$(constructComponentNameFromFilename $interface_file)
+	service=$(constructServiceFromFileName $interface_file)
 	sed "s/__SERVICE__/$service/"  $template_file > $full_path_dest_file
+}
+
+function constructServiceFromFileName(){
+	a=${1%.go}
+    a=${a##*/}
+	echo $a | tr -d '-' 
 }
 
 function constructComponentNameFromPackageName() {
