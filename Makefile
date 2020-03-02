@@ -11,9 +11,14 @@ gen-file-from-template:
 copy-scripts: 
 	cp scripts/* bin
 
+## create-bin: create the bin directory if it doesnt exist
+.PHONY: create-bin
+create-bin:
+	if [ ! -d bin ]; then mkdir bin; fi
+
 ## all: 
 .PHONY: all
-all: copy-scripts gen-file-from-template
+all: create-bin copy-scripts gen-file-from-template
 
 ## help: type for getting this help
 .PHONY: help
