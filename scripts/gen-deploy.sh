@@ -41,13 +41,13 @@ cp -r $template_folder $mod
 cd $mod
 go mod init "$url"
 makeSedScript > $sedfile
-find $template_folder -name "*.go" -print | 
+find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
 	while read r
 	do
 		executeSed $r
 	done
 
-find $template_folder -name Dockerfile -print | 
+find $template_folder -name Dockerfile -print | sed "s#^$template_folder/##" |
 	while read r
 	do
 		executeSed $r
