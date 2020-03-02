@@ -40,6 +40,7 @@ echo "Creating module $mod in folder $scripts_folder with url $url"
 cp -r $template_folder $mod
 cd $mod
 go mod init "$url"
+cd ..
 makeSedScript > $sedfile
 find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
 	while read r
@@ -53,6 +54,6 @@ find $template_folder -name Dockerfile -print | sed "s#^$template_folder/##" |
 		executeSed $r
 	done
 
-cd ..
+
 
 exit 0
