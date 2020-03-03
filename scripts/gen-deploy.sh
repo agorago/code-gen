@@ -1,5 +1,12 @@
 
-
+function cloneRepos(){
+  for repo in $(cat code-gen/template-files/gen-deploy/dependencies.txt | cut -d',' -f3)
+  do
+  full_repo_path="https://${repo}.git"
+  echo "cloning repo ${full_repo_path}"
+  git clone $full_repo_path
+  done
+}
 
 function setenv(){
 	curprog=${1}
@@ -54,6 +61,6 @@ find $template_folder -name Dockerfile -print | sed "s#^$template_folder/##" |
 		executeSed $r
 	done
 
-
+cloneRepos
 
 exit 0
