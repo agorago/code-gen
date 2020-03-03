@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	bplustest "https://gitlab.intelligentb.com/devops/bplus/test"
+	bplustest "gitlab.intelligentb.com/devops/bplus/test"
 )
 
 func TestMain(m *testing.M) {

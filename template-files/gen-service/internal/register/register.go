@@ -4,7 +4,7 @@ import (
 	"context"
 	api "{{$service.URL}}/api"
 	service "{{$service.URL}}/internal/service"
-	bplus "https://gitlab.intelligentb.com/devops/bplus/fw"
+	bplus "gitlab.intelligentb.com/devops/bplus/fw"
 )
 func init(){
 	var sd =  bplus.ServiceDescriptor{
