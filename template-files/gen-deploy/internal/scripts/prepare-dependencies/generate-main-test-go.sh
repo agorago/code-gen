@@ -12,7 +12,7 @@ maintest_file="test/main_test.go"
     echo '  "testing"'
 
 	echo '  "github.com/DATA-DOG/godog"'
-    echo '  bplustest "github.com/MenaEnergyVentures/bplus/test"'
+    echo '  bplustest "gitlab.intelligentb.com/devops/bplus/test"'
 } > ${maintest_file}
 
 while IFS="," read module module_path url test_present

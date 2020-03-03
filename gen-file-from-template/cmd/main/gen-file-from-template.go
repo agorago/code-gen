@@ -6,7 +6,7 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/MenaEnergyVentures/code-gen/util"
+	"gitlab.intelligentb.com/devops/code-gen/util"
 )
 
 

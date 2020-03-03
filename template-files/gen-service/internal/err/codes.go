@@ -3,7 +3,7 @@ package err
 import (
 	"context"
 	"net/http"
-	bpluse "github.com/MenaEnergyVentures/bplus/err"
+	bpluse "https://gitlab.intelligentb.com/devops/bplus/err"
 )
 
 // It is recommended that each module define its own error file

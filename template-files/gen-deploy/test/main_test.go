@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/godog"
-	bplustest "github.com/MenaEnergyVentures/bplus/test"
+	bplustest "https://gitlab.intelligentb.com/devops/bplus/test"
 	hellotest "github.com/MenaEnergyVentures/hello/test"
 	carfueltest "github.com/MenaEnergyVentures/order-carfuel/test"
 )

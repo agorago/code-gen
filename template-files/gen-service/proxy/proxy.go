@@ -3,7 +3,7 @@ package proxy
 	import (
 		"context"
 	
-		bplus "github.com/MenaEnergyVentures/bplus/http"
+		bplus "https://gitlab.intelligentb.com/devops/bplus/http"
 		api "{{$service.URL}}/api"
 		e "{{$service.URL}}/internal/err"
 	)

@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "__URL__"
-	"github.com/MenaEnergyVentures/bplus/cmd"
+	"gitlab.intelligentb.com/devops/bplus/cmd"
 )
 
 func main() {
