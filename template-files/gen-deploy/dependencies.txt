@@ -1,3 +1,1 @@
 bplus,../bplus,github.com/MenaEnergyVentures/bplus,false
-customer_identity,../customer_identity,github.com/MenaEnergyVentures/customer_identity,true
-hello,../hello,github.com/MenaEnergyVentures/hello,true
