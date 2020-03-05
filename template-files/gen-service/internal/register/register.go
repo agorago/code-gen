@@ -4,6 +4,8 @@ import (
 	"context"
 	api "{{$service.URL}}/api"
 	service "{{$service.URL}}/internal/service"
+	_ "gitlab.intelligentb.com/devops/bplus"                   // initialize BPlus first to make sure
+	// that all BPLUS modules are loaded
 	bplus "gitlab.intelligentb.com/devops/bplus/fw"
 )
 func init(){

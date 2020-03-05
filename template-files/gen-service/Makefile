@@ -19,6 +19,11 @@ generate-error-codes:
 run:
 	go run internal/cmd/main/main.go
 
+## copy-bundles: Copies the bundle files from individual modules to a common CONFIG folder
+.PHONY: copy-bundles
+copy-bundles:
+	internal/scripts/copy-bundles.sh
+
 ## test-scripts: Execute all tests from command line
 .PHONY: test-scripts
 test-scripts:
