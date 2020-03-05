@@ -1,6 +1,6 @@
 
 include .env
-
+export
 .DEFAULT_GOAL := all
 
 ## build: Build the executable
