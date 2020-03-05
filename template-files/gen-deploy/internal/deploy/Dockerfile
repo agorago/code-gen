@@ -24,5 +24,5 @@ COPY --from=builder /tmp/target/configs /configs
 # but if you decide to talk to HTTPS sites, you'll need this.
 #COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Notice "CMD", we don't use "Entrypoint" because there is no OS
-EXPOSE 8080
+EXPOSE 5000
 CMD ["/main" ]
