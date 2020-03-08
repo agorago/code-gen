@@ -6,12 +6,17 @@ function createFromTemplate(){
 	$scripts_folder/gen-file-from-template "$interface_file"  "$url" $template_file $start_error_code > $full_path_dest_file
 }
 
-function substituteService(){
-	dest_file=$1
+# This works for replacing the service in toml file,.
+# This is for error file
+function subErrorfile(){
+  dest_file=$1
 	template_file=$template_folder/$dest_file
-	full_path_dest_file=$mod/$dest_file
-	service=$(constructServiceFromFileName $interface_file)
-	sed "s/__SERVICE__/$service/"  $template_file > $full_path_dest_file
+	full_path_dest_file=$mod/$service.toml
+  substituteService $template_file  $full_path_dest_file
+}
+
+function substituteService(){
+	sed "s/__SERVICE__/$service/"  $1 > $2
 }
 
 function constructServiceFromFileName(){
@@ -56,6 +61,7 @@ fi
 setenv $0
 interface_file=${1}
 start_error_code=${3}
+service=$(constructServiceFromFileName "$interface_file")
 if [[ ! -f $interface_file ]]
 then
 	echo "Interface file $interface_file cannot be opened"
@@ -83,9 +89,9 @@ find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
 		createFromTemplate $r
 	done
 
-find $template_folder -name "*.toml" -print | sed "s#^$template_folder/##" |
+find $template_folder -name "errors.toml" -print | sed "s#^$template_folder/##" |
 	while read r
 	do
-		substituteService $r  # substitute the __SERVICE__ with the service name
+		subErrorfile $r  # substitute the __SERVICE__ with the service name
 	done	
 exit 0

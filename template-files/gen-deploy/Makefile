@@ -23,7 +23,7 @@ docker-run:
 
 ## prepare-dependencies: Prepares the dependencies from dependencies.txt
 .PHONY: prepare-dependencies
-prepare-dependencies: generate-error-codes generate-dependencies-go copy-bundles generate-main-test-go  copy-tests mod-edits
+prepare-dependencies: generate-error-codes generate-dependencies-go copy-bundles generate-main-test-go  copy-tests mod-edits copy-configs
 
 
 ## mod-edits: For each module execute go mod edit --replace
@@ -52,6 +52,11 @@ generate-dependencies-go:
 .PHONY: copy-bundles
 copy-bundles:
 	internal/scripts/prepare-dependencies/copy-bundles.sh
+
+# copy-configs: Copies the config files from individual modules to a common CONFIG folder
+.PHONY: copy-configs
+copy-configs:
+	internal/scripts/prepare-dependencies/copy-configs.sh
 
 # generate-error-codes: Generates error codes from enum constants (using iota)
 .PHONY: generate-error-codes
