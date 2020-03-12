@@ -1,20 +1,24 @@
 # code-gen
 
 ## HOW TO GET STARTED
-- git clone [git@github.com:MenaEnergyVentures/code-gen.git](https://github.com/MenaEnergyVentures/code-gen)
-- git clone [git@github.com:MenaEnergyVentures/bplus.git](https://github.com/MenaEnergyVentures/bplus)
+- git clone [git@ssh.intelligentb.com:devops/code-gen.git](https://gitlab.intelligentb.com/devops/code-gen.git)
+- git clone [git@ssh.intelligentb.com:devops/bplus.git](https://gitlab.intelligentb.com/devops/bplus.git)
 - cd code-gen
 - make all
-- use `code-gen/bin/gen.sh` inside your directory to generate the code
+- cd ..
+- use `code-gen/bin/gen.sh` to generate the code (input required values)
+
+##Example:
+
 ```
-Example:
 PWD: $HOME/sample
 RUN: ls
 OUPUT: bplus		code-gen	sample.go
-HOW: sample.go looks?
-CHECK: code-gen/sample.go
+
+CHECK: code-gen/sample.go for the reference
 ```
-- cd `sample` 
+- cd sample 
 - make generate-error-codes
+- make copy-bundles
 - make build
-- RUN bin/main
+- make run
