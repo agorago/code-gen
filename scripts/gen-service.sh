@@ -82,6 +82,7 @@ cd $mod
 go mod init "$url"
 go mod edit --replace ${URLPrefix}/bplus=../bplus
 cd -
+mkdir $mod/api
 cp $interface_file $mod/api/api.go
 find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
 	while read r
