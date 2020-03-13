@@ -4,6 +4,8 @@ import (
 	"context"
 	api "{{$service.URL}}/api"
 	service "{{$service.URL}}/internal/service"
+	_ "gitlab.intelligentb.com/devops/bplus"                   // initialize BPlus first to make sure
+	// that all BPLUS modules are loaded
 	bplus "gitlab.intelligentb.com/devops/bplus/fw"
 )
 func init(){
@@ -22,8 +24,12 @@ func OperationDescriptors()([]bplus.OperationDescriptor){
 			Name:        "{{$elem.Operation}}",
 			URL:             "/{{$elem.URL}}",
 			HTTPMethod:      "{{$elem.Method}}",
+			{{if $elem.RequestPayload -}}
 			OpRequestMaker:  make{{$elem.Operation}}Request,
+			{{- end}}
+			{{if $elem.ResponsePayload -}}
 			OpResponseMaker: make{{$elem.Operation}}Response,
+			{{- end}}
 			Params:          {{$elem.Operation}}PD(),
 		},
 		{{end}}
