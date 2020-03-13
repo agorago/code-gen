@@ -46,49 +46,49 @@ destdir=$3
 dir=$(pwd)
 setenv $0
 cp $sedfile $tmp
-echo "s/assignPilot/$small_action_to_generate/g" >> $tmp
-echo "s/AssignPilot/$caps_action_to_generate/g" >> $tmp
+echo "s/__small_action_to_generate__/$small_action_to_generate/g" >> $tmp
+echo "s/__caps_action_to_generate__/$caps_action_to_generate/g" >> $tmp
 
-sed -f $tmp  >  $destdir/actions/$package_name.go <<!
-package CarFuelOrderActions
+sed -f $tmp  >  $destdir/internal/actions/$package_name.go <<!
+package actions
 
 import (
 	"context"
-	"fmt"
 
-	CarFuelOrder "$URLPrefix/order-carfuel"
+	"$URLPrefix/__package_name__/internal/service"
 	"$URLPrefix/bplus/stm"
+	"$URLPrefix/bplus/log"
 )
 
 const (
-	AssignPilotEvent = "assignPilot"
+	__caps_action_to_generate__Event = "__small_action_to_generate__"
 )
 
 func init() {
-	CarFuelOrder.RegisterCarFuelAction(AssignPilotEvent+stm.TransitionActionSuffix,
-		assignPilotAction{})
-	CarFuelOrder.RegisterCarFuelAction(AssignPilotEvent+stm.ParamTypeMakerSuffix,
-		assignPilotParamTypeMaker{})
+	service.__RegisterPackageNameAction__(__caps_action_to_generate__Event+stm.TransitionActionSuffix,
+		__small_action_to_generate__Action{})
+	service.__RegisterPackageNameAction__("__caps_action_to_generate__"+stm.ParamTypeMakerSuffix,
+		__small_action_to_generate__ParamTypeMaker{})
 }
 
-type assignPilotParam struct {
+type __small_action_to_generate__Param struct {
 	Message string
 }
 
-type assignPilotAction struct{}
-type assignPilotParamTypeMaker struct{}
+type __small_action_to_generate__Action struct{}
+type __small_action_to_generate__ParamTypeMaker struct{}
 
-func (assignPilotAction) Process(_ context.Context, info stm.StateTransitionInfo) error {
-	fmt.Println("assignPilot event has been triggered")
-	fmt.Printf("Param received is %v\n", info.Param)
-	x := info.Param.(*assignPilotParam)
+func (__small_action_to_generate__Action) Process(ctx context.Context, info stm.StateTransitionInfo) error {
+	log.Info(ctx,"__small_action_to_generate__ event has been triggered")
+	log.Infof(ctx,"Param received is %v\n", info.Param)
+	x := info.Param.(*__small_action_to_generate__Param)
 	_ = x
 	return nil
 }
 
-func (assignPilotParamTypeMaker) MakeParam(context context.Context) (interface{}, error) {
-	fmt.Printf("In assignPilotParamTypeMaker\n")
-	return &assignPilotParam{}, nil
+func (__small_action_to_generate__ParamTypeMaker) MakeParam(ctx context.Context) (interface{}, error) {
+	log.Info(ctx,"In __small_action_to_generate__ParamTypeMaker\n")
+	return &__small_action_to_generate__Param{}, nil
 }
 !
 rm $tmp

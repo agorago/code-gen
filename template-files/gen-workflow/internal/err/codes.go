@@ -42,7 +42,6 @@ type BPlusErrorCode int
 // enumeration for B Plus Error codes
 const (
 	CannotInvokeOperation BPlusErrorCode = iota + 200000
-	SecurityException
 )
 
 //go:generate stringer -type=BPlusErrorCode

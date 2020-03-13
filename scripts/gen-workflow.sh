@@ -21,9 +21,12 @@ function smallFirstLetter() {
 function makeSedScript(){
 	register_action="Register${caps_package_to_generate}Action"
 	echo "s#CarFuelOrder#$caps_package_to_generate#g"
+	echo "s#__PackageName__#$caps_package_to_generate#g"
 	echo "s#order-carfuel#$package_name#g"
+	echo "s#__package_name__#$package_name#g"
 	echo "s#RegisterCarFuelAction#$register_action#g"
-	echo "s#Jsonfile#$packagedir/config/$stdfile#g"
+	echo "s#__RegisterPackageNameAction__#$register_action#g"
+	echo "s#Jsonfile#$stdfile#g"
 	echo "s#url#$package_name#g"
 	echo "s#starterrorcode#$starterrorcode#g"
 }
@@ -46,9 +49,10 @@ package_name=${stdfile%"-std.json"}
 caps_package_to_generate=$(constructComponentNameFromPackageName $package_name)
 small_package_to_generate=$(smallFirstLetter $caps_package_to_generate)
 
-if [[ -z $1 ]] || [[ $1 != *.json ]] || [[ ! -f $1 ]] || [[ -z $2 ]]
+if [[ -z $1 ]] || [[ $1 != *-std.json ]] || [[ ! -f $1 ]] || [[ -z $2 ]]
 then
 	echo "Usage: $prog <workflow file> [URL-for-module]"
+	echo "Workflow file must be of form *-std.json"
 	exit 1
 fi
 workflow_file=$1
@@ -58,19 +62,21 @@ setenv $0
 
 destdir=$(pwd)
 packagedir=$destdir/$package_name
-mkdir $packagedir $packagedir/config $packagedir/actions
-mkdir -p $packagedir/internal/err
+cp -r $template_folder $packagedir
 cd $packagedir
 go mod init $URL
+go mod edit --replace ${URLPrefix}/bplus=../bplus
 cd -
-cp $stdfile $packagedir/config
+cp $stdfile $packagedir/configs/workflow
 sedscript=/tmp/sedscript.$prog.$$
 makeSedScript > $sedscript
-sed -f $sedscript $template_folder/model.go > $packagedir/model.go 
-sed -f $sedscript $template_folder/order-carfuel.go > $packagedir/$package_name.go
-sed -f $sedscript $template_folder/repo.go > $packagedir/repo.go
-sed -f $sedscript $template_folder/preprocessor.go > $packagedir/preprocessor.go
+sed -f $sedscript $template_folder/init.go > $packagedir/init.go
+sed -f $sedscript $template_folder/model/model.go > $packagedir/model/model.go
+sed -f $sedscript $template_folder/internal/service/register.go > $packagedir/internal/service/register.go
+sed -f $sedscript $template_folder/internal/service/repo.go > $packagedir/internal/service/repo.go
+sed -f $sedscript $template_folder/internal/service/preprocessor.go > $packagedir/internal/service/preprocessor.go
 sed -f $sedscript $template_folder/internal/err/codes.go > $packagedir/internal/err/codes.go
+sed -f $sedscript $template_folder/internal/actions/init.go > $packagedir/internal/actions/init.go
 
 jq '.[] | .events | keys  ' 2>/dev/null < $workflow_file | egrep -v "^\[|^\]" | tr -d ',"'  |
 while read event
