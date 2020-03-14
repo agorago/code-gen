@@ -8,29 +8,23 @@ include .env
 
 ## build: Build the executable
 .PHONY: build
-build: generate-error-codes
+build: generate-error-codes copy-bundles
 	go build -o bin/main internal/cmd/main/main.go
-
 
 ## copy-bundles: Copies the bundle files from individual modules to a common CONFIG folder
 .PHONY: copy-bundles
 copy-bundles:
-	internal/scripts/prepare-dependencies/copy-bundles.sh
-
-## copy-configs: Copies the config files from individual modules to a common CONFIG folder
-.PHONY: copy-configs
-copy-configs:
-	internal/scripts/prepare-dependencies/copy-configs.sh
+	internal/scripts/copy-bundles.sh
 
 ## generate-error-codes: Generates error codes from enum constants (using iota)
 .PHONY: generate-error-codes
 generate-error-codes:
-	go generate internal/err/codes.go
+	internal/scripts/gen-error.sh
 
 ## run: Run the executable after building it
 .PHONY: run
-run: generate-error-codes
-	go run cmd/main/main.go
+run: generate-error-codes copy-bundles
+	go run internal/cmd/main/main.go
 
 ## test-scripts: Execute all tests from command line
 .PHONY: test-scripts

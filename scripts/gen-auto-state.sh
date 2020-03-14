@@ -32,9 +32,9 @@ function setenv(){
 prog=${0##*/}
 tmp=/tmp/$prog.$$
 
-if [[ -z $1 ]] 
+if [[ -z $1 ]]
 then
-	echo "Usage: $prog <action-to-generate> <sed-file> destdir"
+	echo "Usage: $prog <auto-state-to-generate> <sed-file> destdir"
 	exit 1
 fi
 package_name=$1
@@ -48,7 +48,7 @@ setenv $0
 cp $sedfile $tmp
 echo "s/__small_action_to_generate__/$small_action_to_generate/g" >> $tmp
 echo "s/__caps_action_to_generate__/$caps_action_to_generate/g" >> $tmp
-echo "s/__event_name__/$package_name/g" >> $tmp
+echo "s/__state_name__/$package_name/g" >> $tmp
 
 sed -f $tmp  >  $destdir/internal/actions/$package_name.go <<!
 package actions
@@ -56,40 +56,30 @@ package actions
 import (
 	"context"
 
-	"$URLPrefix/__package_name__/internal/service"
 	"$URLPrefix/bplus/stm"
 	"$URLPrefix/bplus/log"
+	"$URLPrefix/__package_name__/model"
+	"$URLPrefix/__package_name__/internal/service"
 )
 
 const (
-	__caps_action_to_generate__Event = "__event_name__"
+	stateName = "__state_name__"
 )
 
+type __small_action_to_generate__ struct{}
+
+func (__small_action_to_generate__) Process(ctx context.Context, stateEntity stm.StateEntity) (string, error) {
+  log.Info(ctx,"At the __small_action_to_generate__ action")
+	order := stateEntity.(*model.__PackageName__)
+	_ = order
+	// replace the line above with something more useful
+	// write your code here to return the event name
+	return "yes", nil
+}
+
 func init() {
-	service.__RegisterPackageNameAction__(__caps_action_to_generate__Event+stm.TransitionActionSuffix,
-		__small_action_to_generate__Action{})
-	service.__RegisterPackageNameAction__("__caps_action_to_generate__"+stm.ParamTypeMakerSuffix,
-		__small_action_to_generate__ParamTypeMaker{})
-}
-
-type __small_action_to_generate__Param struct {
-	Message string
-}
-
-type __small_action_to_generate__Action struct{}
-type __small_action_to_generate__ParamTypeMaker struct{}
-
-func (__small_action_to_generate__Action) Process(ctx context.Context, info stm.StateTransitionInfo) error {
-	log.Info(ctx,"__small_action_to_generate__ event has been triggered")
-	log.Infof(ctx,"Param received is %v\n", info.Param)
-	x := info.Param.(*__small_action_to_generate__Param)
-	_ = x
-	return nil
-}
-
-func (__small_action_to_generate__ParamTypeMaker) MakeParam(ctx context.Context) (interface{}, error) {
-	log.Info(ctx,"In __small_action_to_generate__ParamTypeMaker\n")
-	return &__small_action_to_generate__Param{}, nil
+	service.__RegisterPackageNameAction__(stateName+stm.AutomaticStateSuffix,
+		__small_action_to_generate__{})
 }
 !
 rm $tmp

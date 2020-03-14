@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	subType = "__PackageName__"
+	subType = "__package_name__"
 )
 
 // this contains any kind of function pointer.

@@ -1,4 +1,4 @@
-[hello.errors]
+[__package_name__.errors]
 
 CannotInvokeOperation = "Operation {{.Service}}:{{.Operation}} could not be invoked. error is {{.Error}}"
 SecurityException = "Invalid secure token"

@@ -27,7 +27,6 @@ function makeSedScript(){
 	echo "s#RegisterCarFuelAction#$register_action#g"
 	echo "s#__RegisterPackageNameAction__#$register_action#g"
 	echo "s#Jsonfile#$stdfile#g"
-	echo "s#url#$package_name#g"
 	echo "s#starterrorcode#$starterrorcode#g"
 }
 
@@ -70,17 +69,29 @@ cd -
 cp $stdfile $packagedir/configs/workflow
 sedscript=/tmp/sedscript.$prog.$$
 makeSedScript > $sedscript
+sed -f $sedscript $template_folder/configs/bundles/en-US/en.toml > $packagedir/configs/bundles/en-US/$package_name.toml
+rm $packagedir/configs/bundles/en-US/en.toml
+sed -f $sedscript $template_folder/internal/scripts/test/test.sh > $packagedir/internal/scripts/test/test.sh
 sed -f $sedscript $template_folder/init.go > $packagedir/init.go
 sed -f $sedscript $template_folder/model/model.go > $packagedir/model/model.go
+sed -f $sedscript $template_folder/internal/cmd/main/main.go > $packagedir/internal/cmd/main/main.go
 sed -f $sedscript $template_folder/internal/service/register.go > $packagedir/internal/service/register.go
 sed -f $sedscript $template_folder/internal/service/repo.go > $packagedir/internal/service/repo.go
 sed -f $sedscript $template_folder/internal/service/preprocessor.go > $packagedir/internal/service/preprocessor.go
 sed -f $sedscript $template_folder/internal/err/codes.go > $packagedir/internal/err/codes.go
 sed -f $sedscript $template_folder/internal/actions/init.go > $packagedir/internal/actions/init.go
 
+# For each event generate an action
 jq '.[] | .events | keys  ' 2>/dev/null < $workflow_file | egrep -v "^\[|^\]" | tr -d ',"'  |
 while read event
 do
 	$scripts_folder/gen-action.sh $event $sedscript $packagedir
 done
+# Find all automatic keys and generate stubs for each one of them
+jq '. |  to_entries[] | select (.value.automatic == true) | .key' $workflow_file | tr -d '"' |
+while read key
+do
+  $scripts_folder/gen-auto-state.sh $key $sedscript $packagedir
+done
+
 exit 0

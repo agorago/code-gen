@@ -10,6 +10,7 @@ gen-file-from-template:
 .PHONY: copy-scripts
 copy-scripts: 
 	cp scripts/* bin
+	chmod +x bin/*
 
 ## create-bin: create the bin directory if it doesnt exist
 .PHONY: create-bin
