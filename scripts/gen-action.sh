@@ -68,7 +68,7 @@ const (
 func init() {
 	service.__RegisterPackageNameAction__(__caps_action_to_generate__Event+stm.TransitionActionSuffix,
 		__small_action_to_generate__Action{})
-	service.__RegisterPackageNameAction__("__caps_action_to_generate__"+stm.ParamTypeMakerSuffix,
+	service.__RegisterPackageNameAction__(__caps_action_to_generate__Event+stm.ParamTypeMakerSuffix,
 		__small_action_to_generate__ParamTypeMaker{})
 }
 
