@@ -16,7 +16,7 @@ generate-error-codes:
 
 ## run: Run the executable after building it
 .PHONY: run
-run:
+run: generate-error-codes copy-bundles
 	go run internal/cmd/main/main.go
 
 ## copy-bundles: Copies the bundle files from individual modules to a common CONFIG folder
