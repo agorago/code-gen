@@ -6,6 +6,11 @@
 gen-file-from-template:
 	cd gen-file-from-template;go build -o ../bin/gen-file-from-template cmd/main/gen-file-from-template.go
 
+## build-json-parser: Build a file from a template file
+.PHONY: build-json-parser
+build-json-parser:
+	cd json-parser;go build -o ../bin/json-parser cmd/main/main.go
+
 ## copy-scripts: copies all scripts from the scripts folder to bin
 .PHONY: copy-scripts
 copy-scripts: 
@@ -19,7 +24,7 @@ create-bin:
 
 ## all: 
 .PHONY: all
-all: create-bin copy-scripts gen-file-from-template
+all: create-bin copy-scripts gen-file-from-template build-json-parser
 
 ## help: type for getting this help
 .PHONY: help

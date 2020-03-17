@@ -82,13 +82,13 @@ sed -f $sedscript $template_folder/internal/err/codes.go > $packagedir/internal/
 sed -f $sedscript $template_folder/internal/actions/init.go > $packagedir/internal/actions/init.go
 
 # For each event generate an action
-jq '.[] | .events | keys  ' 2>/dev/null < $workflow_file | egrep -v "^\[|^\]" | tr -d ',"'  |
+$scripts_folder/json-parser $workflow_file events  |
 while read event
 do
 	$scripts_folder/gen-action.sh $event $sedscript $packagedir
 done
 # Find all automatic keys and generate stubs for each one of them
-jq '. |  to_entries[] | select (.value.automatic == true) | .key' $workflow_file | tr -d '"' |
+$scripts_folder/json-parser $workflow_file autostates |
 while read key
 do
   $scripts_folder/gen-auto-state.sh $key $sedscript $packagedir
