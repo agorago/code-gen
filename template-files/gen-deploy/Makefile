@@ -1,4 +1,3 @@
-
 include .env
 
 # Pre-requisites for running this Makefile
@@ -19,7 +18,7 @@ docker-build:
 ## docker-run: RUNS the docker container built using docker-build 
 .PHONY: docker-run
 docker-run:
-	docker run -p 8080:8080 sample
+	docker run -p 5000:5000 sample
 
 ## prepare-dependencies: Prepares the dependencies from dependencies.txt
 .PHONY: prepare-dependencies
