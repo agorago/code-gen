@@ -17,7 +17,11 @@ func main() {
 		os.Exit(0)
 	}
 	templateFile := os.Args[3]
-	processAndPrint(util.ParseService(),templateFile)
+	s := "100000"
+	if len(os.Args) > 4 {
+		s = os.Args[4]
+	}
+	processAndPrint(util.ParseService(os.Args[1],os.Args[2],s),templateFile)
 }
 
 func processAndPrint(sdet util.Servicedetail,templateFile string) {

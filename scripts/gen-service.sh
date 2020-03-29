@@ -11,8 +11,9 @@ function createFromTemplate(){
 function subErrorfile(){
   dest_file=$1
 	template_file=$template_folder/$dest_file
-	full_path_dest_file=$mod/$service.toml
+	full_path_dest_file=$mod/configs/bundles/en-US/$service.toml
   substituteService $template_file  $full_path_dest_file
+  rm $mod/configs/bundles/en-US/errors.toml
 }
 
 function substituteService(){

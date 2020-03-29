@@ -1,3 +1,8 @@
+# Pre-requisites for running this Makefile
+# Make sure that go is installed
+# Make sure that go get golang.org/x/tools/cmd/stringer is executed to install the stringer tool
+# brew tap go-swagger/go-swagger
+# brew install go-swagger
 
 include .env
 export
@@ -40,6 +45,18 @@ build-linux:
 	@echo "Building for linux"
 	GOOS=linux GOARCH=arm go build -o bin/main-linux-arm main.go
 	GOOS=linux GOARCH=arm64 go build -o bin/main-linux-arm64 main.go
+
+## swagger-build: Build the swagger.yaml file from the doc specification
+.PHONY: swagger-build
+swagger-build:
+	@echo "Building swagger.yaml spec file"
+	swagger generate spec -o ./swagger.yaml --scan-models
+
+## swagger-serve: Serves the Swagger spec file via the swagger UI
+.PHONY: swagger-serve
+swagger-serve: swagger-build
+	@echo "Serving swagger"
+	swagger serve -F=swagger swagger.yaml
 
 .PHONY: all
 all: help

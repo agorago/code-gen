@@ -1,2 +1,5 @@
-curl -XPOST -d'{"s":"hello, world"}' localhost:8080/count
 
+
+# sample curl scripts
+
+curl -XPOST -d'{"payloadkey": "payloadvalue"} '  -H "HeaderKey: HeaderValue"   localhost:${BPLUS.PORT}/url-route

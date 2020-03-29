@@ -3,3 +3,4 @@ CAFU.code-workspace
 bin/
 .DS_Store
 .vscode
+vendor/

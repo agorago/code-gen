@@ -1,4 +1,6 @@
-
+# Pre-requisites for running this Makefile
+# Make sure that go is installed
+# Make sure that go get golang.org/x/tools/cmd/stringer is executed to install the stringer tool
 include .env
 
 # Pre-requisites for running this Makefile

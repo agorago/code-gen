@@ -7,6 +7,9 @@ import (
 	_ "gitlab.intelligentb.com/devops/bplus"                   // initialize BPlus first to make sure
 	// that all BPLUS modules are loaded
 	bplus "gitlab.intelligentb.com/devops/bplus/fw"
+	{{if $service.DoesServiceHaveGetOperations -}}
+	"reflect"
+	{{- end}}
 )
 func init(){
 	var sd =  bplus.ServiceDescriptor{
@@ -22,6 +25,7 @@ func OperationDescriptors()([]bplus.OperationDescriptor){
 		{{range $index,$elem := $service.Operations}}
 		bplus.OperationDescriptor{
 			Name:        "{{$elem.Operation}}",
+			Description:  "{{$elem.Description}}",
 			URL:             "/{{$elem.URL}}",
 			HTTPMethod:      "{{$elem.Method}}",
 			{{if $elem.RequestPayload -}}
@@ -43,6 +47,7 @@ func {{$elem.Operation}}PD()([]bplus.ParamDescriptor){
 		{{range $index,$p := $elem.Params}}
 		bplus.ParamDescriptor{
 			Name:        "{{$p.Name}}",
+			Description:        "{{$p.Description}}",
 			ParamOrigin: {{$p.Origin}},
 			{{if $p.Kind -}} ParamKind: {{$p.Kind}}, {{- end}}
 		},
