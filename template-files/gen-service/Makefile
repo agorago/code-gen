@@ -16,7 +16,7 @@ build:
 ## generate-error-codes: Generates error codes from enum constants (using iota)
 .PHONY: generate-error-codes
 generate-error-codes:
-	go generate internal/err/codes.go
+	internal/scripts/gen-error.sh
 
 
 ## run: Run the executable after building it

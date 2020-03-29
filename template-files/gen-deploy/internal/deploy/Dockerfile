@@ -15,6 +15,9 @@ RUN apk add make
 RUN make build
 # Second (final) stage, base image is scratch
 FROM alpine
+RUN apk add --no-cache ca-certificates
+RUN apk add --update tzdata
+ENV TZ=UTC
 ENV CONFIGPATH=/configs
 # Copy statically linked binary
 # Copy statically linked binary
