@@ -15,6 +15,7 @@ func init(){
 	var sd =  bplus.ServiceDescriptor{
 		ServiceToInvoke: service.Make{{$service.CamelCase}}Service(),
 		Name:            "{{$service.Name}}",
+		Description:     "{{$service.Description}}",
 		Operations:      OperationDescriptors(),
 	}
 	bplus.RegisterService("{{$service.Name}}", sd)
@@ -28,6 +29,8 @@ func OperationDescriptors()([]bplus.OperationDescriptor){
 			Description:  "{{$elem.Description}}",
 			URL:             "/{{$elem.URL}}",
 			HTTPMethod:      "{{$elem.Method}}",
+			RequestDescription: "{{$elem.RequestDescription}}",
+			ResponseDescription: "{{$elem.ResponseDescription}}",
 			{{if $elem.RequestPayload -}}
 			OpRequestMaker:  make{{$elem.Operation}}Request,
 			{{- end}}
