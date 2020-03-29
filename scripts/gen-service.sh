@@ -16,6 +16,13 @@ function subErrorfile(){
   rm $mod/configs/bundles/en-US/errors.toml
 }
 
+function subSwaggerGenerate(){
+  t=$template_folder/internal/scripts/swagger/swagger-generate.sh
+  f=$mod/internal/scripts/swagger/swagger-generate.sh
+  echo "Generating the swagger-generate.sh - $t $f"
+  substituteService $t $f
+}
+
 function substituteService(){
 	sed "s/__SERVICE__/$service/"  $1 > $2
 }
@@ -95,5 +102,7 @@ find $template_folder -name "errors.toml" -print | sed "s#^$template_folder/##" 
 	while read r
 	do
 		subErrorfile $r  # substitute the __SERVICE__ with the service name
-	done	
+	done
+
+subSwaggerGenerate # make the service name in the swagger-generate.sh file
 exit 0

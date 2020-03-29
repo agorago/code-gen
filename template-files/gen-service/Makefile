@@ -10,7 +10,7 @@ export
 
 ## build: Build the executable
 .PHONY: build
-build:
+build: create-bin
 	go build -o bin/main internal/cmd/main/main.go
 
 ## generate-error-codes: Generates error codes from enum constants (using iota)
@@ -34,17 +34,34 @@ copy-bundles:
 test-scripts:
 	internal/scripts/test/test.sh
 
+## create-bin: create the bin directory if it doesnt exist
+.PHONY: create-bin
+create-bin:
+	if [ ! -d bin ]; then mkdir bin; fi
+
 ## test: execute the BDD tests
 .PHONY: test
-test: 
+test: create-bin
 	go test -v ./... --godog.format=pretty -race -coverprofile=bin/coverage.txt -covermode=atomic
 
 ## build-linux: Build the binary for Linux
 .PHONY: build-linux
-build-linux:
+build-linux: create-bin
 	@echo "Building for linux"
 	GOOS=linux GOARCH=arm go build -o bin/main-linux-arm main.go
 	GOOS=linux GOARCH=arm64 go build -o bin/main-linux-arm64 main.go
+
+## swagger-gen: Build the swagger generator.
+.PHONY: swagger-gen-build
+swagger-gen-build: create-bin
+	@echo "Building swagger-gen executable"
+	go build -o bin/swagger-gen internal/cmd/swagger-gen/swagger-gen-main.go
+
+## swagger-docs:Use the swagger-gen generator to build the swagger docs.
+.PHONY: swagger-docs
+swagger-docs: swagger-gen-build
+	@echo "Building swagger documentation for the service"
+	internal/scripts/swagger/swagger-generate.sh
 
 ## swagger-build: Build the swagger.yaml file from the doc specification
 .PHONY: swagger-build

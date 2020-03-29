@@ -1,4 +1,7 @@
 package err
+
+import "net/http"
+
 {{ with $service := .}}
 import (
 	"context"
@@ -9,7 +12,7 @@ import (
 // It is recommended that each module define its own error file
 
 func internalMakeBplusError(ctx context.Context, ll bpluse.LogLevel, e BPlusErrorCode, httpErrorCode int,args map[string]interface{}) bpluse.BPlusError {
-	return bpluse.MakeBplusErrorWithErrorCode(ctx, ll, int(e), e.String(),httpErrorCode, args)
+	return bpluse.MakeErrWithHTTPCode(ctx, ll, int(e), e.String(),httpErrorCode, args)
 }
 
 // MakeBplusError - returns a customized CAFUError for BPlus
