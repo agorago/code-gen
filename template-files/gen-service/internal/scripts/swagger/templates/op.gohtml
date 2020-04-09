@@ -5,7 +5,7 @@ import (
 "gitlab.intelligentb.com/cafu/{{$service.Name}}/api"
 )
 {{range $index,$op := $service.Operations}}
-// swagger:route {{$op.HTTPMethod}} {{$service.Name}}{{$op.URL}} {{$op.Name}}-tag {{$op.Name}}RequestWrapper
+// swagger:route {{$op.HTTPMethod}} {{$op.URL}} {{$op.Name}}-tag {{$op.Name}}RequestWrapper
 // {{$op.Description}}
 // responses:
 //   200: {{$op.Name}}ResponseWrapper
