@@ -44,6 +44,11 @@ create-bin:
 test: create-bin
 	go test -v ./... --godog.format=pretty -race -coverprofile=bin/coverage.txt -covermode=atomic
 
+## coverage: Reports on the test coverage
+.PHONY: coverage
+coverage: test
+	go tool cover -html=bin/coverage.txt
+
 ## build-linux: Build the binary for Linux
 .PHONY: build-linux
 build-linux: create-bin

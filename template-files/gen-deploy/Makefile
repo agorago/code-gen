@@ -7,7 +7,7 @@ include .env
 
 ## build: Build the executable
 .PHONY: build
-build:
+build: create-bin
 	go build -o bin/main internal/cmd/main/main.go
 
 ## docker-build: Builds a container  using docker 
@@ -67,6 +67,12 @@ generate-error-codes:
 run:
 	go run cmd/main/main.go
 
+
+## create-bin: create the bin directory if it doesnt exist
+.PHONY: create-bin
+create-bin:
+	if [ ! -d bin ]; then mkdir bin; fi
+
 ## test-scripts: Execute all tests from command line
 .PHONY: test-scripts
 test-scripts:
@@ -74,8 +80,13 @@ test-scripts:
 
 ## test: execute the BDD tests
 .PHONY: test
-test: 
+test: create-bin
 	go test -v ./... --godog.format=pretty -race -coverprofile=bin/coverage.txt -covermode=atomic
+
+## coverage: Reports on the test coverage
+.PHONY: coverage
+coverage: test
+	go tool cover -html=bin/coverage.txt
 
 ## build-linux: Build the binary for Linux
 .PHONY: build-linux

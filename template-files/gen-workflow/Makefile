@@ -10,13 +10,19 @@ include .env
 
 ## build: Build the executable
 .PHONY: build
-build: generate-error-codes copy-bundles
+build: create-bin generate-error-codes copy-bundles
 	go build -o bin/main internal/cmd/main/main.go
 
 ## copy-bundles: Copies the bundle files from individual modules to a common CONFIG folder
 .PHONY: copy-bundles
 copy-bundles:
 	internal/scripts/copy-bundles.sh
+
+
+## create-bin: create the bin directory if it doesnt exist
+.PHONY: create-bin
+create-bin:
+	if [ ! -d bin ]; then mkdir bin; fi
 
 ## generate-error-codes: Generates error codes from enum constants (using iota)
 .PHONY: generate-error-codes
@@ -35,8 +41,13 @@ test-scripts:
 
 ## test: execute the BDD tests
 .PHONY: test
-test: generate-error-codes
+test: create-bin generate-error-codes
 	go test -v ./... --godog.format=pretty -race -coverprofile=bin/coverage.txt -covermode=atomic
+
+## coverage: Reports on the test coverage
+.PHONY: coverage
+coverage: test
+	go tool cover -html=bin/coverage.txt
 
 ## build-linux: Build the binary for Linux
 .PHONY: build-linux
