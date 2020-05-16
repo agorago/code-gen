@@ -3,6 +3,8 @@
 # Make sure that go get golang.org/x/tools/cmd/stringer is executed to install the stringer tool
 # brew tap go-swagger/go-swagger
 # brew install go-swagger
+# install jsonenums
+# go get github.com/campoy/jsonenums
 
 include .env
 export
@@ -13,7 +15,12 @@ export
 build: create-bin
 	go build -o bin/main internal/cmd/main/main.go
 
-## generate-error-codes: Generates error codes from enum constants (using iota)
+## generate - run go-generate for all the files
+.PHONY: generate
+generate:
+	go generate ./...
+
+## generate-error-code: Generates error codes from enum constants (using iota)
 .PHONY: generate-error-codes
 generate-error-codes:
 	internal/scripts/gen-error.sh
