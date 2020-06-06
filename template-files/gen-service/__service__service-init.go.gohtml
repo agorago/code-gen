@@ -1,0 +1,35 @@
+package stringdemoservice
+{{ with $service := .}}
+import (
+	apiroot "{{$service.ApiURL}}"
+	"{{$service.ServiceURL}}/internal/register"
+	"{{$service.ServiceURL}}/internal/service"
+	wego "{{$service.WegoURL}}"
+	fw "{{$service.WegoURL}}/fw"
+)
+
+const (
+	Service = "{{$service.CamelCase}}Service"
+)
+
+func Make{{$service.CamelCase}}serviceInitializer()fw.Initializer{
+	return {{$service.CamelCaseLower}}ServiceInitializer{}
+}
+
+type {{$service.CamelCaseLower}}ServiceInitializer struct{}
+
+func ({{$service.CamelCaseLower}}ServiceInitializer)ModuleName() string{
+	return Service
+}
+// The {{$service.Name}}service initializer
+func ({{$service.CamelCaseLower}}ServiceInitializer)Initialize(commandCatalog fw.CommandCatalog)(fw.CommandCatalog,error){
+	rs,err := wego.GetWego(commandCatalog)
+	if err != nil {
+		return commandCatalog,err
+	}
+	register.Register{{$service.CamelCase}}Service(rs,service.MakeStringdemoService(),
+		[]fw.Middleware {},
+		apiroot.GetProxyMiddlewares())
+	return commandCatalog,nil
+}
+{{end}}

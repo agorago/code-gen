@@ -1,0 +1,5 @@
+{{ with $service := .}}
+{{range $index,$op := $service.Operations}}
+    curl -X{{$op.Method}} -d' ' localhost:${WEGO__PORT}/{{$service.Name}}/{{$op.URL}}
+{{end}}
+{{end}}

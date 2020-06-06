@@ -1,0 +1,15 @@
+{{ with $service := .}}
+package {{$service.Name}}service
+
+import (
+	apiroot "{{$service.ApiURL}}"
+	"{{$service.WegoURL}}"
+	"{{$service.WegoURL}}/fw"
+)
+
+var Initializers = []fw.Initializer{
+	wego.MakeWegoInitializer(),
+	apiroot.Make{{$service.CamelCase}}apiInitializer(),
+	Make{{$service.CamelCase}}serviceInitializer(),
+}
+{{end}}

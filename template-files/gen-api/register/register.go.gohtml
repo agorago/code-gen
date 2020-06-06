@@ -1,0 +1,74 @@
+package register
+{{ with $service := .}}
+import (
+	"context"
+	api "{{$service.ApiURL}}/api"
+	fw "{{$service.WegoURL}}/fw"
+	"reflect"
+)
+
+func RegisterService(wegoService fw.RegistrationService,proxyMiddlewares []fw.Middleware){
+	wegoService.RegisterService("stringdemo",GetServiceDescriptor(proxyMiddlewares))
+}
+func GetServiceDescriptor(proxyMiddlewares []fw.Middleware) fw.ServiceDescriptor {
+	return fw.ServiceDescriptor{
+		Name:        "{{$service.Name}}",
+		Description: "{{$service.Description}}",
+		Operations:  operationDescriptors(proxyMiddlewares),
+	}
+}
+
+func operationDescriptors(proxyMiddlewares []fw.Middleware) []fw.OperationDescriptor {
+	return []fw.OperationDescriptor{
+		{{range $index,$op := $service.Operations}}
+		{
+			Name:                "{{$op.Operation}}",
+			Description:         "{{$op.Description}}",
+			URL:                 "/{{$op.URL}}",
+			HTTPMethod:          "{{$op.Method}}",
+			RequestDescription:  "{{$op.RequestDescription}}",
+			ResponseDescription: "{{$op.ResponseDescription}}",
+			{{if $op.RequestPayload -}}
+				OpRequestMaker:     make{{$op.Operation}}Request,
+			{{- end}}
+			{{if $op.ResponsePayload -}}
+				OpResponseMaker: make{{$op.Operation}}Response,
+			{{- end}}
+			Params:          {{$op.Operation}}PD(),
+		},
+		{{end}}
+
+	}
+}
+
+{{range $index,$elem := $service.Operations}}
+func {{$elem.Operation}}PD() []fw.ParamDescriptor {
+
+	return []fw.ParamDescriptor{
+		{{range $index,$p := $elem.Params}}
+		{
+			Name:        "{{$p.Name}}",
+			Description:  "{{$p.Description}}",
+			ParamOrigin: {{$p.Origin}},
+			{{if $p.Kind -}} ParamKind: {{$p.Kind}}, {{- end}}
+		},
+		{{end}}
+	}
+}
+{{end}}
+
+{{range $index,$value := $service.Operations}}
+	{{if $value.RequestPayload -}}
+		func make{{$value.Operation}}Request(ctx context.Context)(interface{},error){
+			return {{$value.RequestPayloadDefaultValue}},nil
+		}
+	{{- end}}
+
+	{{if $value.ResponsePayload -}}
+		func make{{$value.Operation}}Response(ctx context.Context)(interface{},error){
+			return {{$value.ResponsePayloadDefaultValue}},nil
+		}
+	{{- end}}
+{{- end}}
+
+{{end}}

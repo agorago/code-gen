@@ -1,108 +1,82 @@
+#!/bin/bash
 
-function createFromTemplate(){
-	dest_file=$1
-	template_file=$template_folder/$dest_file
-	full_path_dest_file=$mod/$dest_file
-	$scripts_folder/gen-file-from-template "$interface_file"  "$url" $template_file $start_error_code > $full_path_dest_file
+function usage(){
+  echo "Usage: $prog <go interface file> <URL-for-module> [start error code]"
 }
 
-# This works for replacing the service in toml file,.
-# This is for error file
-function subErrorfile(){
-  dest_file=$1
-	template_file=$template_folder/$dest_file
-	full_path_dest_file=$mod/configs/bundles/en-US/$service.toml
-  substituteService $template_file  $full_path_dest_file
-  rm $mod/configs/bundles/en-US/errors.toml
+function _exit {
+  exit $1
 }
 
-function subSwaggerGenerate(){
-  t=$template_folder/internal/scripts/swagger/swagger-generate.sh
-  f=$mod/internal/scripts/swagger/swagger-generate.sh
-  echo "Generating the swagger-generate.sh - $t $f"
-  substituteService $t $f
-}
-
-function substituteService(){
-	sed "s/__SERVICE__/$service/"  $1 > $2
-}
-
-function constructServiceFromFileName(){
-	a=${1%.go}
-    a=${a##*/}
-	echo $a | tr -d '-' 
-}
-
-function constructComponentNameFromPackageName() {
-  a=${1%.go}
-  a=${a##*/}
-  component=""
-
-  echo $a | tr '-' '\n' |
-  {
-    while  read A
-    do
-      A="$(tr '[:lower:]' '[:upper:]' <<< ${A:0:1})${A:1}"
-      component="$component$A"
-    done
-    echo $component
-  }
-}
-
+## Program initialization
 function setenv(){
+  prog=${1##*/}
 	curprog=${1}
 	scripts_folder=${curprog%/*}
 	[[ $scripts_folder != /* ]] && scripts_folder=$(pwd)/${scripts_folder}
 
+  source $scripts_folder/common-functions.sh
 	base_folder=${scripts_folder%/bin}
-	template_folder=$base_folder/template-files/gen-service
+	template_folder_base=$base_folder/template-files
 	config_folder=$base_folder/config
+	## set up other environment variables
 	source $config_folder/setenv.sh
+  interface_file=${2}
+  echo "interface file is $2"
+  validateInterfaceFile
+	## initialize mod
+	mod=${interface_file%.go}
+  mod=${mod##*/}
+  service=$(constructServiceFromFileName "$interface_file")
+
+  ## API folder
+  template_folder_api=$template_folder_base/gen-api
+  apiURL=${url}api
+  apiFolder=$dest_folder/${service}api
+
+  # Service Folder
+  template_folder_service=$template_folder_base/gen-service
+  serviceURL=${url}service
+  serviceFolder=$dest_folder/${service}service
 }
 
-prog=${0##*/}
-if [[ -z $1 ]] || [[ $1 != *.go ]] || [[ -z $2 ]]
-then
-	echo "Usage: $prog <go interface file> [URL-for-module]"
-	exit 1
-fi
-setenv $0
-interface_file=${1}
-start_error_code=${3}
-service=$(constructServiceFromFileName "$interface_file")
-if [[ ! -f $interface_file ]]
-then
-	echo "Interface file $interface_file cannot be opened"
-	exit 2
-fi
+##  Validate arguments
+function validateInterfaceFile(){
+  if [[ -z $interface_file ]]
+  then
+    usage
+    _exit 3
+  fi
+  if [[ ! -f $interface_file ]]
+  then
+	  echo "Interface file $interface_file cannot be opened"
+	  exit 2
+  fi
+  if [[ ! $interface_file == /* ]]
+  then
+    interface_file=$(pwd)/$interface_file
+  fi
+}
 
-mod=${interface_file%.go}
-if [[ ! $interface_file == /* ]]
-then
-	interface_file=$(pwd)/$interface_file
-fi
+function generateAPIModule(){
+  generateModule $template_folder_api $apiFolder $apiURL
+  mkdir $folder/api
+  cp $interface_file $folder/api/api.go
+}
 
-url="$2"
-echo "Creating module $mod in folder $scripts_folder with url $url"
+function generateServiceModule(){
+  generateModule $template_folder_service $serviceFolder $serviceURL
+  cd $serviceFolder
+  go mod edit --replace ${serviceURL}=../${service}api
+  cd -
+}
 
-cp -r $template_folder $mod
-cd $mod
-go mod init "$url"
-go mod edit --replace ${URLPrefix}/bplus=../bplus
-cd -
-mkdir $mod/api
-cp $interface_file $mod/api/api.go
-find $template_folder -name "*.go" -print | sed "s#^$template_folder/##" |
-	while read r
-	do
-		createFromTemplate $r
-	done
+setenv "${0}" "${1}"
+apiURL="${2}"
+serviceURL="${3}"
+start_error_code=${4}
 
-find $template_folder -name "errors.toml" -print | sed "s#^$template_folder/##" |
-	while read r
-	do
-		subErrorfile $r  # substitute the __SERVICE__ with the service name
-	done
-
-subSwaggerGenerate # make the service name in the swagger-generate.sh file
-exit 0
+echo "Creating module $mod in folder $dest_folder with url $apiURL-$serviceURL for service $service using interface file $interface_file"
+generateAPIModule
+generateServiceModule
+_exit 0

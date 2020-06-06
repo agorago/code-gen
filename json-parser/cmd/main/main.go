@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gitlab.intelligentb.com/devops/bplus/stm"
+	"github.com/agorago/wego/stm"
 	"log"
 	"os"
 )

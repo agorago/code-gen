@@ -1,0 +1,48 @@
+package stringdemoapi
+{{ with $service := .}}
+import (
+	"{{$service.ApiURL}}/api"
+	"{{$service.ApiURL}}/proxy"
+	"{{$service.ApiURL}}/register"
+	wego "{{$service.WegoURL}}"
+	"{{$service.WegoURL}}/fw"
+)
+
+const (
+	ApiName = "{{$service.CamelCase}}Api"
+	ProxyName = "{{$service.CamelCase}}Proxy"
+)
+
+func Make{{$service.CamelCase}}apiInitializer()fw.Initializer{
+	return {{$service.CamelCaseLower}}Initializer{}
+}
+
+type {{$service.CamelCaseLower}}Initializer struct{}
+
+func ({{$service.CamelCaseLower}}Initializer)ModuleName() string{
+	return ApiName
+}
+// The {{$service.CamelCaseLower}} initializer
+func ({{$service.CamelCaseLower}}Initializer)Initialize(commandCatalog fw.CommandCatalog)(fw.CommandCatalog,error){
+	wegoService,err := wego.GetWego(commandCatalog)
+	if err != nil {
+		return commandCatalog,nil
+	}
+	proxyMiddlewares := GetProxyMiddlewares()
+	register.RegisterService(wegoService,proxyMiddlewares)
+
+	// create a proxy
+	proxyService,err := wego.GetProxyService(commandCatalog)
+	proxy := proxy.Make{{$service.CamelCase}}Proxy(proxyService)
+	commandCatalog.RegisterCommand(ProxyName,proxy)
+	return commandCatalog,nil
+}
+
+func Get{{$service.CamelCase}}Proxy(commandCatalog fw.CommandCatalog)(api.{{$service.CamelCase}}Service,error){
+	return commandCatalog.Command(ProxyName).(api.{{$service.CamelCase}}Service),nil
+}
+
+func GetProxyMiddlewares()[]fw.Middleware{
+	return []fw.Middleware{}
+}
+{{end}}

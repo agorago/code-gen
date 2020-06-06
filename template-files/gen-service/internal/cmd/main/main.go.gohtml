@@ -1,0 +1,16 @@
+package main
+{{ with $service := .}}
+import (
+	"context"
+	root "{{$service.ServiceURL}}"
+	"{{$service.WegoURL}}/cmd"
+	"{{$service.WegoURL}}/log"
+)
+
+var Version = "development"
+
+func main() {
+	log.Infof(context.TODO(), "Version is %s", Version)
+	cmd.Serve(root.Initializers...)
+}
+{{end}}

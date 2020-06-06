@@ -1,5 +1,0 @@
-[__SERVICE__.errors]
-
-CannotInvokeOperation = "Operation {{.Service}}:{{.Operation}} could not be invoked. error is {{.Error}}"
-SecurityException = "Invalid secure token"
-CannotCastResponse = "Error in casting response. Response is {{.Response}}"

@@ -1,0 +1,22 @@
+package register
+{{with $service := .}}
+import (
+	fw "{{$service.WegoURL}}/fw"
+	// that all WeGO modules are loaded
+	apiregister "{{$service.ApiURL}}/register"
+)
+
+
+
+func RegisterStringdemoService(rs fw.RegistrationService,
+		serviceToInvoke interface{},
+		middlewares []fw.Middleware,
+		proxyMiddlewares []fw.Middleware) {
+	var sd = apiregister.GetServiceDescriptor(proxyMiddlewares)
+	sd.ServiceToInvoke = serviceToInvoke
+	for i := range sd.Operations {
+		sd.Operations[i].OpMiddleware = middlewares
+	}
+	rs.RegisterService("{{$service.Name}}", sd)
+}
+{{end}}

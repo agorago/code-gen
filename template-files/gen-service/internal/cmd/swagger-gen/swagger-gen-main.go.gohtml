@@ -1,0 +1,11 @@
+package main
+{{with $service := .}}
+import (
+	root "{{$service.ServiceURL}}"
+	"{{$service.WegoURL}}/cmd"
+)
+
+func main() {
+	cmd.SwaggerMain(root.Initializers...)
+}
+{{end}}

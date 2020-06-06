@@ -1,0 +1,39 @@
+package proxy
+{{ with $service := .}}
+import (
+	"context"
+
+	wegohttp "{{$service.WegoURL}}/http"
+	api "{{$service.ApiURL}}/api"
+	e "{{$service.ApiURL}}/internal/err"
+)
+
+type {{$service.CamelCase}} struct {
+	WegoProxy wegohttp.ProxyService
+}
+
+func Make{{$service.CamelCase}}Proxy(wegoproxy wegohttp.ProxyService) api.{{$service.CamelCase}}Service{
+	// make sure that the proxy info is first initialized
+	return {{$service.CamelCase}}{
+		WegoProxy: wegoproxy,
+	}
+}
+
+{{range $opindex,$op := $service.Operations}}
+// {{$op.Operation}} - proxies the {{$op.Operation}} and calls the server using HTTP
+func (proxy {{$service.CamelCase}}) {{$op.Operation}}({{range $index,$val := $op.Params}}{{if $index}},{{end}}{{$val.Name}} {{$val.Type}}{{end}})({{range $index,$val := $op.Results}}{{if $index}},{{end}}{{$val.Type}}{{end}}){
+	resp, err := proxy.WegoProxy.ProxyRequest(ctx, "{{$service.Name}}", "{{$op.Operation}}" {{range $index,$val := $op.Params}}{{if $index}},{{$val.Name}}{{end}}{{end}})
+	if err != nil {
+		return {{$op.ResponsePayload}}{}, err
+	}
+	r, ok := resp.(*{{$op.ResponsePayload}})
+	if ok {
+		return *r,nil
+	}
+
+	return {{$op.ResponsePayload}}{}, e.Error(ctx, e.CannotCastResponse,map[string]interface{}{
+		"Response":resp, })
+
+}
+{{end}}
+{{end}}

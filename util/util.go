@@ -16,11 +16,13 @@ import (
 type Servicedetail struct {
 	InterfaceFile  string            // the path to the .go file that will be parsed for interfaces
 	Description string // the extracted comments for this service interface
-	Name           string            // the Base Name of the file (without .go suffix)
+	Name           string            // the Base Name of the file (without .go suffix) this can have eiphens
 	CamelCase      string            // the base name of the file in Camel Case
 	CamelCaseLower string // the base name in camel case with the first letter in lower case
 	InterfaceName string // the name of the actual interface that was defined in the file
-	URL            string            // the URL for the repo as passed in the argument
+	WegoURL  string // the URL of the wego library
+	ApiURL            string            // the URL for the APUI repo
+	ServiceURL string  // the URL for the service Repo
 	BaseErrorCode  string            // the starting error code or 100,000 if not specified
 	Operations     []*Operationdetail // Details of the operations
 	DoesServiceHaveGetOperations bool // true if there is even a single operation that is pure GET (no payload)
@@ -34,41 +36,40 @@ type Operationdetail struct {
 	Results        []Fielddetail
 	UnqualifiedRequestPayload string
 	UnqualifiedResponsePayload string
-	RequestPayload string // the type of the request payload - short cut rather than parsing
-	// through all the Params above
-	ResponsePayload string // the type of the response payload - short cut rather than parsing
-	// through all the Results above
+	RequestPayload string // the type of the request payload
+	ResponsePayload string // the type of the response payload
 	RequestPayloadLower         string // the request payload with the first letter in lower case
 	ResponsePayloadLower        string // the response payload with the first letter in lower case
-	RequestPayloadDefaultValue  string // short cut for default value of the request payload
-	ResponsePayloadDefaultValue string // short cut for default value of the response payload
-	URL                         string // the operation name with eiphens
-	Method                      string // the type of method. GET if no request param type is known
+	RequestPayloadDefaultValue  string // Default value of the request payload
+	ResponsePayloadDefaultValue string // Default value of the response payload
+	URL                         string // constructed url for operation
+	Method                      string // the type of method. GET if no request param type is known POST otherwise
 	RequestDescription string // the description of the request payload
 	ResponseDescription string // the description of the response of this operation
-	// POST otherwise
 }
 
 // Fielddetail - the details of either the params or the return values
 type Fielddetail struct {
-	Name         string // the name of the argument (for params) or "" for return values
+	Name         string // the name of the argument (for params) or "" for unnamed return values
 	Description string // the extracted comments for this field
 	UnqualifiedType string // the type that is returned by the AST. This does not have package name etc.
 	Type         string // the type (either the primitive type or the struct)
 	Kind         string // the kind (the precise type as defined in reflect package)
-	Origin       string // the origin as expected by the ParamOrigin of Param descriptor in B Plus
+	Origin       string // the origin as expected by the ParamOrigin of Param descriptor
 	DefaultValue string // the default value of this param that can be passed to a function
 	PointerType  bool   // Is this a pointer or a normal struct
 }
 
 // ParseService - read the interface file passed from command line and extract the
-// Servicedetail
-func ParseService(iFile string,url string, errorcode string) Servicedetail {
+// Servicedetail along with all other info. Parses the AST using GO reflection
+func ParseService(iFile string,apiURL string,serviceURL string, wegoURL string, errorcode string) Servicedetail {
 	sdet := Servicedetail{}
 
 	sdet.InterfaceFile = iFile
 	sdet.Name = trimInterfaceName(iFile)
-	sdet.URL = url
+	sdet.ApiURL = apiURL
+	sdet.WegoURL = wegoURL
+	sdet.ServiceURL = serviceURL
 	sdet.CamelCase = strcase.ToCamel(sdet.Name)
 	sdet.CamelCaseLower = strcase.ToLowerCamel(sdet.Name)
 	sdet.DoesServiceHaveGetOperations = false
@@ -78,6 +79,8 @@ func ParseService(iFile string,url string, errorcode string) Servicedetail {
 	return sdet
 }
 
+// typeInfo - for every type the comments are preserved in this.
+// Comments are used for constructing descriptions that are needed against the service and operation
 type typeInfo struct {
 	Name string
 	Comments string
@@ -89,6 +92,8 @@ func init(){
 	allTypes = make(map[string]typeInfo)
 }
 
+// trimInterfaceName - extracts the interface from the fully qualified path.
+// extracted name may contain eiphens
 func trimInterfaceName(s string) string {
 	arr := strings.Split(s, "/")
 	if n := len(arr); n > 0 {
@@ -101,14 +106,12 @@ func parseFile(iFile string, sdet *Servicedetail) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, iFile, nil, parser.ParseComments)
 	if err != nil {
-		log.Fatalf("File %s is not readable\n", iFile)
+		log.Fatalf("File %s is not readable or parseable as a GO program. Error = %s\n", iFile,err.Error())
 		return
 	}
 
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch t := n.(type){
-		case *ast.InterfaceType, *ast.TypeSpec:
-			return true
 		case *ast.GenDecl:
 			err = visitGenDecl(sdet,t)
 		default:
@@ -121,12 +124,11 @@ func parseFile(iFile string, sdet *Servicedetail) {
 		}
 		return true
 	})
-	mergeDescriptions(sdet)
-	// log.Printf("Alltypes = %#v\n",allTypes)
+	extractDescriptions(sdet)
 }
 
-// puts all the descriptions in the service detail
-func mergeDescriptions(sdet *Servicedetail){
+// gets the description for service and for request and response payloads for each operation
+func extractDescriptions(sdet *Servicedetail){
 	sdet.Description = getCommentForType(sdet.InterfaceName)
 	for _,op := range sdet.Operations{
 		op.RequestDescription = getCommentForType(op.UnqualifiedRequestPayload)
@@ -145,6 +147,8 @@ func getCommentForType(t string)string{
 	return ti.Comments
 }
 
+//  visitGenDecl - extract each declaration from the GO file.
+// Specific behaviour for each specific type of declaration
 func visitGenDecl(sdet *Servicedetail,t *ast.GenDecl) error{
 	if t.Specs == nil{
 		return nil
@@ -162,6 +166,7 @@ func visitGenDecl(sdet *Servicedetail,t *ast.GenDecl) error{
 	return nil
 }
 
+// visitSpec - process the declaration if it defines a type
 func visitSpec(sdet *Servicedetail,spec ast.Spec) (typeInfo,error) {
 	switch s := spec.(type){
 	case *ast.TypeSpec:
@@ -172,7 +177,8 @@ func visitSpec(sdet *Servicedetail,spec ast.Spec) (typeInfo,error) {
 	}
 }
 
-
+// visitType - for every type extract the documentation
+// if it is interface type extract other details and store them in sdet
 func visitType(sdet *Servicedetail,t *ast.TypeSpec) (typeInfo,error) {
 	switch theType := t.Type.(type){
 	case *ast.InterfaceType:
@@ -318,7 +324,7 @@ func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string, string, s
 			DefaultValue: defaultValue,
 			PointerType: pointerType,
 		})
-		if origin == "bplus.PAYLOAD" {
+		if origin == "fw.PAYLOAD" {
 			unqualifiedPayloadType = varType
 			payloadType = qualifiedType
 			payloadDefaultValue = defaultValue
@@ -332,9 +338,9 @@ func parseFields(op string, fl *ast.FieldList) ([]Fielddetail, string, string, s
 // the AST does not seem to give us the fully qualified type name
 func correctPayloadType(typ string, origin string, pointerType bool) string {
 	switch origin {
-	case "bplus.CONTEXT":
+	case "fw.CONTEXT":
 		return "context.Context"
-	case "bplus.PAYLOAD":
+	case "fw.PAYLOAD":
 		if pointerType {
 			return "*api." + typ
 		}
@@ -372,12 +378,12 @@ func getOrigin(s string) string {
 	switch s {
 	case "int", "int8", "string", "int16", "int32", "int64", "float32",
 		"float64":
-		return "bplus.HEADER"
+		return "fw.HEADER"
 	case "Context":
-		return "bplus.CONTEXT"
+		return "fw.CONTEXT"
 	case "error":
 		return "error"
 	default:
-		return "bplus.PAYLOAD"
+		return "fw.PAYLOAD"
 	}
 }

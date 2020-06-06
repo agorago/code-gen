@@ -2,7 +2,7 @@ package util_test
 
 import (
 	"github.com/magiconair/properties/assert"
-	"gitlab.intelligentb.com/devops/code-gen/util"
+	"github.com/agorago/wego-gen/util"
 	"testing"
 )
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function generateService(){
+function generateApiService(){
     error=1
     while (( error > 0 ))
     do
@@ -9,12 +9,14 @@ function generateService(){
         error=$?
     done
 
-    read -p "URL For the repo ($URLPrefix/$mod)": URL
-    [[ -z $URL ]] && URL=$URLPrefix/$mod
-    read -p "Start Error code($default_start_error_code):" errorcode 
+    read -p "API URL For the repo ($URLPrefix/${mod}api)": apiURL
+    [[ -z $apiURL ]] && apiURL=$URLPrefix/${mod}api
+    read -p "Service URL For the repo ($URLPrefix/${mod}service)": serviceURL
+    [[ -z $serviceURL ]] && serviceURL=$URLPrefix/${mod}service
+    read -p "Start Error code($default_start_error_code):" errorcode
     [[ -z $errorcode ]] && errorcode=$default_start_error_code
     echo "generating service $mod ($interface_file $URL $errorcode)"
-    $scripts_folder/gen-service.sh $interface_file $URL $errorcode
+    $scripts_folder/gen-service.sh $interface_file $apiURL $serviceURL $errorcode
 }
 
 function generateDeployable(){
@@ -146,26 +148,12 @@ function _exit {
 	exit $1
 }
 
-while getopts :S:W:D: opt
-do
-	case $opt in
-		S) service=$OPTARG;;
-		W) workflow=$OPTARG;;
-		D) deploy=$OPTARG;;
-		:) echo "Option $OPTARG requires an argument." 1>&2
-			usage;_exit 2;;
-		\?) [[ $OPTARG = "?" ]] || echo "Invalid option $OPTARG."
-				usage
-				_exit 1;;
-	esac	
-done
-shift $((OPTIND - 1))
-
-a=$(choices "S|Generate a service" "W|Generate a state service" "D|Generate a deployable")
+a=$(choices "W|Generate a state service" "D|Generate a deployable" "S1|Generate API & Service")
 
 case $a in
     "D") generateDeployable ;;
     "W") generateWorkflow ;;
     "S") generateService ;;
+    "S1") generateApiService;;
 esac
 _exit 0

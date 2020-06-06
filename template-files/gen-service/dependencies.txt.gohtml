@@ -1,0 +1,4 @@
+{{ with $service := .}}
+wego,../wego,github.com/agorago/wego,false
+{{$service.Name}}api,../{{$service.Name}}api,{{$service.ApiURL}},false
+{{end}}

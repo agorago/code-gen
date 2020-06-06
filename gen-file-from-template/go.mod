@@ -1,7 +1,7 @@
-module gitlab.intelligentb.com/devops/code-gen/gen-file-from-template
+module github.com/agorago/wego-gen/gen-file-from-template
 
 go 1.13
 
-replace gitlab.intelligentb.com/devops/code-gen/util => ../util
+replace github.com/agorago/wego-gen/util => ../util
 
-require gitlab.intelligentb.com/devops/code-gen/util v0.0.0-00010101000000-000000000000 // indirect
+require github.com/agorago/wego-gen/util v0.0.0-00010101000000-000000000000 // indirect
