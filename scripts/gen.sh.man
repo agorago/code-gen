@@ -1,27 +1,14 @@
 .\" Manpage for gen.sh
 .\" 
-.TH man 8 "28 Jan 2020" "1.0" "Code Generation in BPlus man page"
+.TH man 8 "28 Jan 2020" "1.0" "Code Generation in WeGO man page"
 .SH NAME
-props \- Change or display module and environment specific property settings in REDIS.
+gen.sh \- Generate various types of WeGO modules.
 .SH SYNOPSIS
-props [-?] [-i | -d [-f filename] ] [-l] [-d] [-e env] [-h redis-host] [-p redis-port]
+gen.sh
 .Op .Fl ? 
 .Op .Fl i .Fl f .Ar filename
 .SH DESCRIPTION
-props is an e-bee provided util to manipulate the property settings in REDIS.
-E-Bee properties are filed in REDIS as a hashmap under the key "properties".
-The system supports the notion of trajectories. All incoming user traffic can be bifurcated so that each session goes into one trajectory or the default trajectory. Currently the system supports a random assignment of traffic to a trajectory. It is conceivable that other factors can influence trajectory allocation.
-
-All trajectories are defined by a redis property called "trajectories". 
-
-For each trajectory, there exists two REDIS keys - trajectory-name.properties and trajectory-name.assignment-criteria. The assignment criteria key is a hashmap that consists of various ways of assigning traffic to a trajectory. The trajectory-name.properties REDIS key stores all the over-ridden (and possibly extra) properties that are defined at the trajectory level.
-
-In summary, trajectories have two parts to them: 
-	1.  An algorithm that assigns a user session to the trajectory. Eg: 20% of user sessions must be assigned to this trajectory.
-	2.  A set of config parameters and behaviors that are unique. 
-
-Trajectories are used for A-B testing. The "main" trajectory is the default one used when a session is not assigned to a specific trajectory.
-
+gen.sh is a provided util to generate varioous kinds of WeGO modules.
 
 .SH OPTIONS
 -h and -p for specifying the host name and port number for the redis server that is hosting the property database.
@@ -35,7 +22,10 @@ The -i (for import) option imports all the properties from a file (specified usi
 All inputs for the import must be of the form prop-name=propvalue
 .br
 .SH POSSIBLE USAGES
-$ "props -l" lists out all the available properties 
+$ gen.sh
+Choose 1 for Workflow
+.br
+Choose 2 for generating
 .br
 $ "props -l -t t1" lists out all the properties for trajectory t1 (base properties are listed but t1 specific over-rides are also there) 
 .br
