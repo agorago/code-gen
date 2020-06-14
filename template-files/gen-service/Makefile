@@ -59,7 +59,7 @@ test-scripts:
 
 ## test: execute the BDD tests
 .PHONY: test
-test: create-bin
+test: create-bin generate-error-codes copy-configs
 	go test -v ./... --godog.format=pretty -race -coverprofile=bin/coverage.txt -covermode=atomic
 
 ## coverage: Reports on the test coverage
