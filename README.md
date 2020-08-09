@@ -1,16 +1,16 @@
 # code-gen
 
-## HOW TO GET STARTED
-- git clone [git@ssh.intelligentb.com:devops/code-gen.git](https://gitlab.intelligentb.com/devops/code-gen.git)
-- git clone [git@ssh.intelligentb.com:devops/bplus.git](https://gitlab.intelligentb.com/devops/bplus.git)
-- cd code-gen
-- make all
-- cd ..
-- use `code-gen/bin/gen.sh` to generate the code (input required values)
+## Getting started
+* git clone [git@github.com:agorago/wego-gen.git](git@github.com:agorago/wego-gen.git)
+* git clone [git@github.com:agorago/wego.git](git@github.com:agorago/wego.git)
+* cd wego-gen
+* make all
+* cd ..
+* use `wego-gen/bin/gen.sh` to generate the code (input required values)
 
-##Example:
+## Example
 
-```
+``` sh
 PWD: $HOME/sample
 RUN: ls
 OUPUT: bplus		code-gen	sample.go
